@@ -68,6 +68,6 @@ class Db extends Facade
      */
     protected static function getFacadeClass()
     {
-        return 'think\\db';
+        return 'think\\Db';
     }
 }

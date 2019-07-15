@@ -120,7 +120,11 @@ class ValidateAll extends Make
      */
     public function getTablesField($db, $tablename)
     {
-        $fields = $db->getFields($tablename);
+
+        $sql = "select COLUMN_NAME as field, DATA_TYPE as type, COLUMN_COMMENT as  comment,is_NULLABLE as notnull from information_schema.columns
+                    where table_name='$tablename'";
+
+        $fields = $db->query($sql);
         // 生成模板
         $templates = [
             'rule' => "'%s'=>'require',\r\n\t\t",
@@ -134,18 +138,19 @@ class ValidateAll extends Make
         //忽略ID
         $ignorefield = ['id', 'bz', 'memo', 'createdate', 'createtime', 'remark', 'status', 'zt'];
         //生成枯
-        foreach ($fields as $field => $data) {
+        foreach ($fields as $data) {
 
+            $field = $data['field'];
             if ($this->allfield) {
                 if (in_array($field, $ignorefield))
                     continue;
             } else {
 
-                if ($data['notnull'] == false)
+                if ($data['notnull'] == 'NO')
                     continue;
             }
             $retdata['rule'] .= sprintf($templates['rule'], $field);
-            $retdata['message'] .= sprintf($templates['message'], $field, isset($data['comment']) ? $data['comment'] : $field);
+            $retdata['message'] .= sprintf($templates['message'], $field, !empty($data['comment']) ? $data['comment'] : $field);
         }
         return $retdata;
     }

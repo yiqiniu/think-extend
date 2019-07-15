@@ -10,8 +10,7 @@ class Pingyin
 
     private $pinyin = null;
 
-    public function __construct()
-    {
+    public function __construct(){
 
         $this->pinyin = array(
             "a" => array(59371, 41648, 50400, 33157, 41392, 18661, 47599),
@@ -531,8 +530,7 @@ class Pingyin
      * @param string $separate 分隔符,默认为空
      * @return string
      */
-    public function str2py(string $s, bool $first = true, string $separate = ''): string
-    //public function str2py($s, $first = true, $separate = '')
+    public function str2py($s, $first = true, $separate = '')
     {
         $s = preg_replace("/\s/is", "_", $s);
         $s = preg_replace("/(|\~|\`|\!|\@|\#|\$|\%|\^|\&|\*|\(|\)|\-|\+|\=|\{|\}|\[|\]|\||\\|\:|\;|\"|\'|\<|\,|\>|\.|\?|\/)/is", "", $s);

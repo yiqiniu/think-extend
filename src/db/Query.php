@@ -26,8 +26,9 @@ class Query extends \think\db\Query
      * @throws ModelNotFoundException
      * @throws DbException
      */
-    public function selectArray($data = null): array
+    public function selectArray($data = null)
     {
+        $this->parseOptions();
         if (!is_null($data)) {
             // 主键条件分析
             $this->parsePkWhere($data);
@@ -47,6 +48,7 @@ class Query extends \think\db\Query
      */
     public function findArray($data = null)
     {
+        $this->parseOptions();
         if (!is_null($data)) {
             // AR模式分析主键条件
             $this->parsePkWhere($data);
