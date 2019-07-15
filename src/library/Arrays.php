@@ -14,9 +14,6 @@ namespace yiqiniu\library;
 class Arrays
 {
 
-
-
-
     /**
      * 从数组中删除空白的元素（包括只有空白字符的元素）
      *
@@ -34,7 +31,7 @@ class Arrays
      * @param boolean $trim
      *            是否对数组元素调用 trim 函数
      */
-    static function removeEmpty(& $arr, $trim = true)
+    public function removeEmpty(& $arr, $trim = true)
     {
         foreach ($arr as $key => $value) {
             if (is_array($value)) {
@@ -63,7 +60,7 @@ class Arrays
      * @version 1.0.1
      *          2012-4-19
      */
-    static function removeKey(&$array, $keys)
+    public function removeKey(&$array, $keys)
     {
         if (!is_array($keys)) {
             $keys = array(
@@ -129,8 +126,9 @@ class Arrays
      *            是否在返回结果中包含节点引用
      *
      *            return array 树形结构的数组
+     * @return array
      */
-    static function toTree($arr, $key_node_id, $key_parent_id = 'parent_id', $key_childrens = 'children', $treeIndex = false, & $refs = null)
+    public function toTree($arr, $key_node_id, $key_parent_id = 'parent_id', $key_childrens = 'children', $treeIndex = false, & $refs = null)
     {
         $refs = array();
         foreach ($arr as $offset => $row) {
@@ -166,7 +164,7 @@ class Arrays
         return $tree;
     }
 
-    static function toHashmap($arr, $key_field, $value_field = null)
+    public function toHashmap($arr, $key_field, $value_field = null)
     {
         $ret = array();
         if (empty ($arr)) {
@@ -197,7 +195,7 @@ class Arrays
      *            $find
      * @return string
      */
-    static function toString($array, $comma = ',', $find = '')
+    public function toString($array, $comma = ',', $find = '')
     {
         $str = '';
         $comma_temp = '';
@@ -244,7 +242,7 @@ class Arrays
      *
      * @return array 包含指定键所有值的数组
      */
-    static function getCols($arr, $col)
+    public function getCols($arr, $col)
     {
         $ret = array();
         foreach ($arr as $row) {
@@ -264,7 +262,7 @@ class Arrays
      * @param string $field
      * @return string
      */
-    static function implode(&$arr, $glue = ',', $key = 'id', $field = 'id')
+    public function implode(&$arr, $glue = ',', $key = 'id', $field = 'id')
     {
         if (empty ($arr) || !count($arr)) {
             return '';
@@ -279,7 +277,7 @@ class Arrays
      * @param string $key_field 分组的字段
      * @return array            返回的数组
      */
-    static function groupBy($arr, $key_field)
+    public function groupBy($arr, $key_field)
     {
         $ret = array();
         foreach ($arr as $row) {
@@ -295,7 +293,7 @@ class Arrays
      * @param string $key_childrens 孩子的名称
      * @return array                返回的结果数组
      */
-    static function treeToArray($tree, $key_childrens = 'childrens')
+    public function treeToArray($tree, $key_childrens = 'childrens')
     {
         $ret = array();
         if (isset ($tree [$key_childrens]) && is_array($tree [$key_childrens])) {
@@ -303,7 +301,7 @@ class Arrays
             unset ($tree [$key_childrens]);
             $ret [] = $tree;
             foreach ($childrens as $node) {
-                $ret = array_merge($ret, self::treeToArray($node, $key_childrens));
+                $ret = array_merge($ret, $this->treeToArray($node, $key_childrens));
             }
         } else {
             unset ($tree [$key_childrens]);
@@ -313,15 +311,41 @@ class Arrays
     }
 
     /**
+     * @desc    将一个二维数组按照多个列进行排序，类似 SQL 语句中的 ORDER BY<br/>
+     * 用法：<br/>
+     * $rows = sortByMultiCols($rows, array(<br/>
+     *           'parent' => SORT_ASC, <br/>
+     *           'name' => SORT_DESC,<br/>
+     * ));<br/>
+     * @param array $rowset    要进行排序的源数组
+     * @param array $args    排序规则,例如array('parent' => SORT_ASC,'name' => SORT_DESC));
+     * @return array
+     */
+    public function sortByMultiCols($rowset, $args) {
+        $sortArray = array ();
+        $sortRule = '';
+        foreach ( $args as $sortField => $sortDir ) {
+            foreach ( $rowset as $offset => $row ) {
+                $sortArray [$sortField] [$offset] = $row [$sortField];
+            }
+            $sortRule .= '$sortArray[\'' . $sortField . '\'], ' . $sortDir . ', ';
+        }
+        if (empty ( $sortArray ) || empty ( $sortRule )) {
+            return $rowset;
+        }
+        eval ( 'array_multisort(' . $sortRule . '$rowset);' );
+        return $rowset;
+    }
+    /**
      * 根据指定的键对数组进行排序
      * @param array $array 要排序的数组
      * @param string $keyname 要排序的键值
-     * @param sort $dir 升序还是降序
+     * @param int $dir 升序还是降序
      * @return array          返回的数组
      */
-    static function sortByCol($array, $keyname, $dir = SORT_ASC)
+    public function sortByCol($array, $keyname, $dir = SORT_ASC)
     {
-        return self::sortByMultiCols($array, array(
+        return $this->sortByMultiCols($array, array(
             $keyname => $dir
         ));
     }
@@ -332,7 +356,7 @@ class Arrays
      * @param integer $parent_id 分类的父级键
      * @return array             结果
      */
-    static function getChildren($array, $parent_id = 0)
+    public function getChildren($array, $parent_id = 0)
     {
         $ret = array();
         foreach ($array as $k => $v) {
@@ -348,7 +372,7 @@ class Arrays
      *
      * @return array
      */
-    static function getSiblings($array, $self)
+    public function getSiblings($array, $self)
     {
         $ret = array();
         $current = $array [$self];
@@ -369,9 +393,10 @@ class Arrays
      * @param unknown $tree
      * @param string $key_node_id
      * @param string $key_childrens
-     * @param string $self
+     * @param bool $self
+     * @return array|void
      */
-    static function getDescendants($tree, $key_node_id = 'id', $key_childrens = 'children', $self = false)
+    public function getDescendants($tree, $key_node_id = 'id', $key_childrens = 'children', $self = false)
     {
         //加入传入对象也可以
         if (empty ($tree) || !(is_array($tree) || is_object($tree))) {
@@ -395,7 +420,7 @@ class Arrays
      *
      * @return string
      */
-    static function toSQL($array, $key = 0)
+    public function toSQL($array, $key = 0)
     {
         if (!count($array)) {
             return false;
@@ -411,42 +436,21 @@ class Arrays
     /**
      * 从二维数组中查找结果
      *
+     * @param $array
      * @param $ref 按某个字段来查找
-     * @param $value 查找的值，即$ref字段的值，如果不存在$ref，即二维数组的键就是记录的ID
-     * @param $return 要返回的字段
+     * @param string $value 查找的值，即$ref字段的值，如果不存在$ref，即二维数组的键就是记录的ID
+     * @return false|int|string
      */
-    static function find(&$array, $ref = null, $value = 'id', $return = null, $single = false)
+    public function find(&$array, $ref , $value = 'id')
     {
-        $found = null;
-        if ($ref) {
-            if (!is_array($value)) {
-                $value = self::toArray($value);
-            }
-            foreach ($array as $key => $val) {
-                if (in_array($val [$ref], $value)) {
-                    if ($single) {
-                        $found = $return ? $val [$return] : $val;
-                        break;
-                    }
-                    $found [$key] = $return ? $val [$return] : $val;
-                }
-            }
-        } else {
-            if (is_array($value)) {
-                foreach ($value as $val) {
-                    $found [] = $return ? $array [$val] [$return] : $array [$val];
-                }
-            } else {
-                $found = $return ? $array [$val] [$return] : $array [$val];
-            }
-        }
-        return $found;
+        return  array_search($value, array_column($array, $ref));
+
     }
 
     /**
      * 替换数组中的某个值
      */
-    static function replace(&$array, $arr)
+    public function replace(&$array, $arr)
     {
         $return = $array;
         foreach ($arr as $key => $val) {
@@ -460,11 +464,175 @@ class Arrays
     /**
      * 将数组中的每个元素的头或尾填充字符串
      */
-    static function fill(& $array, $string, $pos = 'left')
+    public function fill(& $array, $string, $pos = 'left')
     {
         foreach ($array as $k => $v) {
             $array [$k] = $pos == 'left' ? "*." . $v : $v . "*.";
         }
+    }
+
+    /**
+     * 把数组中某个值展开,合成为一个数组,主要用于扩展的
+     * @param $arr
+     * @param string $name
+     * @return arrayrc
+     */
+    public function array_extend($arr,$name='attr'){
+        if(!empty($arr[$name])){
+            $attr = json_decode($arr[$name],true);
+            $arr = array_merge($arr,$attr);
+            unset($arr['attr']);
+        }
+        return $arr;
+    }
+
+
+    /**
+     * 返回数组中指定多列
+     * @param Array $input 需要取出数组列的多维数组
+     * @param String $column_keys 要取出的列名，逗号分隔，如不传则返回所有列
+     * @return Array
+     */
+   public function array_columns($input, $column_keys = null, $pk = null)
+    {
+        $result = array();
+        $keys = empty($column_keys) || $column_keys == '*' ? [] : (is_array($column_keys) ? $column_keys : explode(',', $column_keys));
+        if (count($keys) == 1) {
+            $result = array_column($input, $keys[0], $pk);
+        } else {
+            if ($input) {
+                foreach ($input as $k => $v) {
+                    // 指定返回列
+                    if ($keys && $v) {
+                        $tmp = array();
+                        foreach ($keys as $key) {
+                            if ($sub_in = strpos($key, '|')) {
+                                $tmp[substr($key, $sub_in + 1)] = isset($v[substr($key, 0, $sub_in)]) ? $v[substr($key, 0, $sub_in)] : '';
+                            } else {
+                                $tmp[$key] = isset($v[$key]) ? $v[$key] : '';
+                            }
+                        }
+                    } else {
+                        $tmp = $v;
+                    }
+                    $result[$pk ? $v[$pk] : $k] = $tmp;
+                }
+            }
+        }
+        return $result;
+    }
+
+   public function info_columns($info, $column_keys = null)
+    {
+        $keys = empty($column_keys) || $column_keys == '*' ? [] : (is_array($column_keys) ? $column_keys : explode(',', $column_keys));
+        $result = false;
+        if ($info) {
+            if (count($keys) == 1) {
+                $result = $info[$keys[0]];
+            } else {
+                $tmp = false;
+                foreach ($keys as $key) {
+                    if ($sub_in = strpos($key, '|')) {
+                        $tmp[substr($key, $sub_in + 1)] = isset($info[substr($key, 0, $sub_in)]) ? $info[substr($key, 0, $sub_in)] : '';
+                    } else {
+                        $tmp[$key] = isset($info[$key]) ? $info[$key] : '';
+                    }
+                }
+                $result = $tmp;
+            }
+        }
+        return $result;
+    }
+
+    /**
+     * 把返回的数据集转换成Tree
+     * @param array $list 要转换的数据集
+     * @param string $pid parent标记字段
+     * @param string $level level标记字段
+     * @return array
+     */
+    public function list_to_tree($list, $pk = 'id', $pid = 'pid', $child = 'children', $root = 0)
+    {
+        // 创建Tree
+        $tree = array();
+        if (is_array($list)) {
+            // 创建基于主键的数组引用
+            $refer = array();
+            foreach ($list as $key => $data) {
+                $refer[$data[$pk]] =& $list[$key];
+            }
+            foreach ($list as $key => $data) {
+                // 判断是否存在parent
+                $parentId = $data[$pid];
+                if ($root == $parentId) {
+                    $tree[] =& $list[$key];
+                } else {
+                    if (isset($refer[$parentId])) {
+                        $parent =& $refer[$parentId];
+                        $parent[$child][] =& $list[$key];
+                    }
+                }
+            }
+        }
+        return $tree;
+    }
+
+    /**
+     * 将list_to_tree的树还原成列表
+     * @param array $tree 原来的树
+     * @param string $child 孩子节点的键
+     * @param string $order 排序显示的键，一般是主键 升序排列
+     * @param array $list 过渡用的中间数组，
+     * @return array        返回排过序的列表数组
+     * @author yangweijie <yangweijiester@gmail.com>
+     */
+    public  function tree_to_list($tree, $child = 'children', $order = 'id', &$list = array())
+    {
+        if (is_array($tree)) {
+            foreach ($tree as $key => $value) {
+                $reffer = $value;
+                if (isset($reffer[$child])) {
+                    unset($reffer[$child]);
+                    tree_to_list($value[$child], $child, $order, $list);
+                }
+                $list[] = $reffer;
+            }
+            // $list = list_sort_by($list, $order, $sortby='asc');
+        }
+        return $list;
+    }
+
+    /**
+     * 对二维数组进行排序
+     * @param $list array       要排序的数组
+     * @param $field string     排序的字段
+     * @param string $sortby 升序或降序
+     * @return array|bool
+     */
+    public function list_sort_by($list, $field, $sortby = 'asc')
+    {
+        if (is_array($list)) {
+            $refer = $resultSet = array();
+            foreach ($list as $i => $data) {
+                $refer[$i] = &$data[$field];
+            }
+            switch ($sortby) {
+                case 'asc': // 正向排序
+                    asort($refer);
+                    break;
+                case 'desc': // 逆向排序
+                    arsort($refer);
+                    break;
+                case 'nat': // 自然排序
+                    natcasesort($refer);
+                    break;
+            }
+            foreach ($refer as $key => $val) {
+                $resultSet[] = &$list[$key];
+            }
+            return $resultSet;
+        }
+        return false;
     }
 
 }

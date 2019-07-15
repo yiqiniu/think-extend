@@ -49,6 +49,7 @@ class MakeFacade extends Make
             $this->output->writeln('<error>' . $class_name . ': class not exists.</error>');
             exit;
         }
+        $this->app= App::getInstance();
 
         $module_name = trim($input->getArgument('module'));
 
@@ -71,7 +72,8 @@ class MakeFacade extends Make
                     } else {
                         $doc = $method->getDocComment();
                     }
-                    $funs[$method->name]['comment'] = str_replace(' * ', '', $doc);
+
+                    $funs[$method->name]['comment'] = str_replace([' * ',"\r","\n","\r\n"], '', $doc);
                     //函数名称
                     $funs[$method->name]['name'] = $method->getName();
                     // 返回值
@@ -97,7 +99,12 @@ class MakeFacade extends Make
                         if (empty($param_default) && $usedefault == false) {
                             $parameter_str .= $param_type . ' $' . $param_name . ',';
                         } else {
-                            $param_default = empty($param_default) ? " ''" : $param_default;
+                            if (empty($param_default)){
+                                $param_default=" ''";
+                            }else{
+                                $param_default = (empty($param_type) || $param_type == 'string') ? "'$param_default'" : $param_default;
+                            }
+
                             $parameter_str .= $param_type . ' $' . $param_name . ' = ' . $param_default . ',';
                             $usedefault = true;
                         }
