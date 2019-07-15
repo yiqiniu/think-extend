@@ -5,6 +5,7 @@ namespace yiqiniu\console\command;
 
 
 use ReflectionClass;
+use think\App;
 use think\console\command\Make;
 use think\console\Input;
 use think\console\input\Argument;
@@ -51,6 +52,7 @@ class MakeFacade extends Make
         }
 
         $module_name = trim($input->getArgument('module'));
+        $this->app = App::getInstance();
 
         try {
             // 解析当前类
@@ -71,7 +73,8 @@ class MakeFacade extends Make
                     } else {
                         $doc = $method->getDocComment();
                     }
-                    $funs[$method->name]['comment'] = str_replace(' * ', '', $doc);
+
+                    $funs[$method->name]['comment'] = str_replace([' * ',"\r","\n","\r\n"], '', $doc);
                     //函数名称
                     $funs[$method->name]['name'] = $method->getName();
                     // 返回值
@@ -97,7 +100,12 @@ class MakeFacade extends Make
                         if (empty($param_default) && $usedefault == false) {
                             $parameter_str .= $param_type . ' $' . $param_name . ',';
                         } else {
-                            $param_default = empty($param_default) ? " ''" : $param_default;
+                            if (empty($param_default)){
+                                $param_default=" ''";
+                            }else{
+                                $param_default = (empty($param_type) || $param_type == 'string') ? "'$param_default'" : $param_default;
+                            }
+
                             $parameter_str .= $param_type . ' $' . $param_name . ' = ' . $param_default . ',';
                             $usedefault = true;
                         }
