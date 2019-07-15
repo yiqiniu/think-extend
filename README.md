@@ -1,4 +1,4 @@
-# yiqiniu-extend for ThinkPHP6
+# yiqiniu-extend for ThinkPHP5.1
 
 ## 安装
 
