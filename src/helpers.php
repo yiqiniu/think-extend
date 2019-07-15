@@ -9,7 +9,7 @@ if (!function_exists('exception_api')) {
      */
     function exception_api($code, $msg)
     {
-        if (!is_numeric($code)&& !empty($msg)) {
+        if (!is_numeric($code) && !empty($msg)) {
             $msg2 = $code;
             $code = $msg;
             $msg = $msg2;
@@ -28,4 +28,11 @@ if (!function_exists('exception_api')) {
     '\\yiqiniu\\console\\command\\MakeFacade',
     '\\yiqiniu\\console\\command\\ModelAll',
     '\\yiqiniu\\console\\command\\ValidateAll',
+    '\\yiqiniu\\console\\command\\Compress',
 ]);
+//添加swoole的支持
+if (extension_loaded('swoole')) {
+    \think\Console::addDefaultCommands([
+        '\\yiqiniu\\console\\command\\Tcpserver'
+    ];
+}
