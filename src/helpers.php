@@ -1,7 +1,6 @@
 <?php
 
 
-use yiqiniu\exception\ApiException;
 
 if (!function_exists('exception_api')) {
     /**
@@ -11,6 +10,14 @@ if (!function_exists('exception_api')) {
      */
     function exception_api($code, $msg)
     {
-        throw  new ApiException($msg, $code);
+        throw  new yiqiniu\exception\ApiException($msg, $code);
     }
 }
+
+
+// 注册命令行指令
+\think\Console::addDefaultCommands([
+    '\\yiqiniu\\console\\command\\MakeFacade',
+    '\\yiqiniu\\console\\command\\ModelAll',
+    '\\yiqiniu\\console\\command\\ValidateAll',
+]);
