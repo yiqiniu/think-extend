@@ -77,7 +77,7 @@ class Query extends \think\db\Query
                 $param = substr($sql, $pos, strpos($sql, ')') - strlen($sql));
             }
             $this->startTrans();
-            if (config('database.type') == 'mysql') {
+            if (strpos($this->getConfig('type'), 'mysql') != false) {
                 $bret = $this->execute($sql);
                 if ($bret != false && !empty($param)) {
                     $bret = $this->query('select ' . $param)[0];
