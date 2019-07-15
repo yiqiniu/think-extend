@@ -40,6 +40,7 @@ class Str
         return $uuid;
     }
 
+
     /**
      * 检查字符串是否是UTF8编码
      * @param string $string 字符串

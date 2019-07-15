@@ -57,5 +57,40 @@ class Query extends \think\db\Query
         return $this->connection->find($this);
 
     }
+
+    /**
+     * 执行存储过程
+     * @param $sql string       要执行sql
+     * @param mixed ...$argv 参数
+     * @return mixed            返回执行的结果
+     * @throws Exception
+     */
+    public function procedure($sql, ...$argv)
+    {
+        try {
+            $sql = vsprintf($sql, $argv);
+            //echo ($sql);
+            // 取返回值变量
+            $pos = strpos($sql, '@');
+            $param = '';
+            if ($pos !== false) {
+                $param = substr($sql, $pos, strpos($sql, ')') - strlen($sql));
+            }
+            $this->startTrans();
+            if (config('database.type') == 'mysql') {
+                $bret = $this->execute($sql);
+                if ($bret != false && !empty($param)) {
+                    $bret = $this->query('select ' . $param)[0];
+                }
+            } else {
+                $bret = $this->query($sql)[0];
+            }
+            $this->commit();
+            return $bret;
+        } catch (Exception $e) {
+            $this->rollback();
+            throw $e;
+        }
+    }
 }
 

@@ -595,6 +595,26 @@ class Date
         return $result;
     }
 
+    /**
+     * 日期加减操作
+     * @param string $date      要处理的日期
+     * @param int $day    >  加天  <0 减天
+     * @param string $format  要返回的格式  Y-m-d
+     * @return string
+     */
+    public function dateAdd($date,$day=0,$format='Y-m-d'){
+        if(!empty($date) && $day!=0){
+            $str = $day>0?'+'.$day:$day;
+            $time = strtotime($str.' day',strtotime($date));
+        }elseif(empty($date)) {
+            $time = strtotime($date);
+        }else{
+            $time= time();
+        }
+        return date($format,$time);
+
+    }
+
     public function __toString()
     {
         return $this->format();
