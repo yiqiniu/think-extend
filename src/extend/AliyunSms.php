@@ -49,7 +49,7 @@ class AliyunSms
         $verityinfo = cache(self::PREFIX . $mobile);
         // 判断手机号码是否发送超时
         if (!empty($verityinfo) && (time() - $verityinfo['time']) < self::TIMEOUT) {
-            throw new Exception('获取频繁,请稍候再试',400);
+            exception_api(400,'获取频繁,请稍候再试');
         }
         $veritycode = str_pad(rand(100000, 999999), 6, '0', STR_PAD_BOTH);
         if ($this->sendSms($mobile, $veritycode, $code)) {
@@ -73,16 +73,16 @@ class AliyunSms
     {
         try {
             if (empty($codeName)) {
-                throw  new Exception('未指定发送模板',400);
+                exception_api(400,'未指定发送模板');
             }
 
             $config = config('sms.');
             if (!isset($config['template'])) {
-                throw  new Exception('未配置发送模板',400);
+                exception_api(400,'未配置发送模板');
             }
             $codeName = isset($config['template'][$codeName]) ? $config['template'][$codeName] : null;
             if (empty($codeName)) {
-                throw  new Exception('指定的发送模板未找到',400);
+                exception_api(400,'指定的发送模板未找到');
             }
 
             $send = new Send($config);
