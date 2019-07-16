@@ -34,12 +34,16 @@ class ValidateAll extends Make
     //是否pgsql数据库
     protected $is_postgressql = false;
 
+    // 数据库架构名,PGsql 有效
+    protected $schema_name = 'public';
+
     protected function configure()
     {
         $this->setName('make:validateall')
             ->addArgument('all', Argument::OPTIONAL, "Make All Fields")
-            ->addArgument('model', Argument::OPTIONAL, "specified Module name")
-            ->setDescription('make database  all table  ');
+            ->addArgument('schema', Argument::OPTIONAL, "specified schema name")
+            ->addArgument('module', Argument::OPTIONAL, "specified Module name")
+            ->setDescription('Generate all validations based on database table fields');
     }
 
 
@@ -61,11 +65,15 @@ class ValidateAll extends Make
 
         $this->is_postgressql = strpos(strtolower($connect['type']), 'pgsql');
         if ($this->is_postgressql != false) {
+
+            if ($schema = trim($input->getArgument('schema'))) {
+                $this->schema_name = $schema;
+            }
             $tablelist = Db::connect($default ?: $connect)->table('pg_class')
                 ->field(['relname as name', "cast(obj_description(relfilenode,'pg_class') as varchar) as comment"])
                 ->where('relname', 'in', function ($query) {
                     $query->table('pg_tables')
-                        ->where('schemaname', 'public')
+                        ->where('schemaname', $this->schema_name)
                         ->whereRaw("position('_2' in tablename)=0")->field('tablename');
                 })->select();
         } else {
@@ -74,13 +82,14 @@ class ValidateAll extends Make
                 ->field('table_name as name,table_comment as comment')
                 ->select();
         }
+
         //select table_name,table_comment from information_schema.tables where table_schema='yiqiniu_new';
 
         // 全部
         $this->allfield = empty($input->getArgument('all')) ? false : true;
 
         // 获取数据库配置
-        $name = trim($input->getArgument('model'));
+        $name = trim($input->getArgument('module'));
         $apppath = $this->app->getAppPath();
         if (!empty($name)) {
             $dirname = $apppath . $name . '\\validate\\';
@@ -138,6 +147,7 @@ class ValidateAll extends Make
 
         if ($this->is_postgressql) {
 
+
             $sql = "SELECT 
             a.attname as field,
             format_type(a.atttypid,a.atttypmod) as type,
@@ -166,8 +176,7 @@ class ValidateAll extends Make
         ];
         //忽略ID
         $ignorefield = ['id', 'bz', 'memo', 'createdate', 'createtime', 'remark', 'status', 'zt'];
-
-        //生成枯
+        //生成字段
         foreach ($fields as $data) {
             if ($data['type'] == '-')
                 continue;
@@ -178,13 +187,16 @@ class ValidateAll extends Make
 
             if (!$this->allfield) {
 
-                if ($data['notnull'] == 'NO'  || ((bool)('' === $data['notnull']))) {
+                if (($this->is_postgressql && !((bool)('' !== $data['notnull']))) ||
+                    (!$this->is_postgressql && $data['notnull'] === 'NO')) {
+
                     continue;
                 }
             }
             $retdata['rule'] .= sprintf($templates['rule'], $field);
             $retdata['message'] .= sprintf($templates['message'], $field, !empty($data['comment']) ? $data['comment'] : $field);
         }
+
         return $retdata;
     }
 

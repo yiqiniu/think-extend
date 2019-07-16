@@ -13,7 +13,7 @@ class UuidKey extends Command
 {
     protected function configure()
     {
-        $this->setName('make:uuid')->setDescription('make new uuid  key');
+        $this->setName('make:uuid')->setDescription('Create a new uuid value');
     }
 
     protected function execute(Input $input, Output $output){
