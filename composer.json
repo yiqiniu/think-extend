@@ -10,15 +10,23 @@
         }
     ],
     "require": {
+        "topthink/think-installer": "2.*",
         "firebase/php-jwt":"^5.0.0"
+
     },
     "autoload": {
         "psr-4": {
             "yiqiniu\\": "src"
         },
         "files": [
+            "src/const.php",
             "src/helpers.php"
         ]
+    },
+    "extra": {
+        "think-config": {
+            "yqnapi": "src/config/yqnapi.php"
+        }
     },
     "minimum-stability": "dev"
 }

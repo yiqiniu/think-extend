@@ -1,13 +1,18 @@
 <?php
 
 
-if (!function_exists('exception_api')) {
+// 处理成功
+
+use yiqiniu\facade\Logger;
+
+
+if (!function_exists('api_exception')) {
     /**
      * @param int $code 异常代码
      * @param string $msg 异常信息
      * @throws \yiqiniu\exception\ApiException
      */
-    function exception_api($code, $msg)
+    function api_exception($code, $msg = '')
     {
         if (!is_numeric($code) && !empty($msg)) {
             $msg2 = $code;
@@ -16,23 +21,21 @@ if (!function_exists('exception_api')) {
         }
         if (!is_numeric($code)) {
             $msg = $code;
-            $code = 400;
+            $code = API_EXCEPTION;
         }
         throw  new yiqiniu\exception\ApiException($msg, $code);
     }
 }
 
 
-
-
-if (!function_exists('result')) {
+if (!function_exists('api_result')) {
     /** 输出返回结果
      * @param $code
      * @param string $msg
      * @param array $data
      * @throws HttpResponseException
      */
-    function result($code, $msg = '', $data = [])
+    function api_result($code, $msg = '', $data = [], $header = [])
     {
 
         if ($code instanceof yiqiniu\exception\ApiException) {
@@ -40,12 +43,12 @@ if (!function_exists('result')) {
             if (isset($data['data']))
                 $data = $data['data'];
             $msg = $code->getMessage();
-            $code = $code->getCode();
+            $code = API_EXCEPTION;
         } elseif ($code instanceof think\Exception) {
             // 记录异常
             Logger::exception($code);
             $msg = $code->getMessage();
-            $code = $code->getCode();
+            $code = API_EXCEPTION;
         } elseif (is_object($code)) {
             $data = $code->toArray();
             $code = 200;
@@ -64,11 +67,11 @@ if (!function_exists('result')) {
             'time' => time(),
             'data' => $data
         ];
-        $response = Response::create($result, 'json');
-        throw new HttpResponseException($response);
+
+        $response = think\facade\Response::create($result, 'json')->header($header);
+        throw new \think\exception\HttpResponseException($response);
     }
 }
-
 
 
 if (!function_exists('result')) {
@@ -206,13 +209,13 @@ if (!function_exists('get_browser_type')) {
 }
 
 
-
 // 注册命令行指令
 \think\Console::addDefaultCommands([
     '\\yiqiniu\\console\\command\\MakeFacade',
     '\\yiqiniu\\console\\command\\ModelAll',
     '\\yiqiniu\\console\\command\\ValidateAll',
     '\\yiqiniu\\console\\command\\Compress',
+    '\\yiqiniu\\console\\command\\UuidKey',
 ]);
 //添加swoole的支持
 if (extension_loaded('swoole')) {
