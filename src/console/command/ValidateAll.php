@@ -31,6 +31,9 @@ class ValidateAll extends Make
     // 是否全部字段 , false 为不为空的字段,true 全部字段
     protected $allfield = false;
 
+    //是否pgsql数据库
+    protected $is_postgressql = false;
+
     protected function configure()
     {
         $this->setName('make:validateall')
@@ -55,16 +58,28 @@ class ValidateAll extends Make
             $this->output->error('database not  setting.');
             return;
         }
-        $tablelist = Db::connect($default ?: $connect)->table('information_schema.tables')
-            ->where('table_schema', $connect['database'])
-            ->field('table_name as name,table_comment as comment')
-            ->select();
+
+        $this->is_postgressql = strpos(strtolower($connect['type']), 'pgsql');
+        if ($this->is_postgressql != false) {
+            $tablelist = Db::connect($default ?: $connect)->table('pg_class')
+                ->field(['relname as name', "cast(obj_description(relfilenode,'pg_class') as varchar) as comment"])
+                ->where('relname', 'in', function ($query) {
+                    $query->table('pg_tables')
+                        ->where('schemaname', 'public')
+                        ->whereRaw("position('_2' in tablename)=0")->field('tablename');
+                })->select();
+        } else {
+            $tablelist = Db::connect($default ?: $connect)->table('information_schema.tables')
+                ->where('table_schema', $connect['database'])
+                ->field('table_name as name,table_comment as comment')
+                ->select();
+        }
         //select table_name,table_comment from information_schema.tables where table_schema='yiqiniu_new';
 
         // 全部
         $this->allfield = empty($input->getArgument('all')) ? false : true;
 
-         // 获取数据库配置
+        // 获取数据库配置
         $name = trim($input->getArgument('model'));
         $apppath = $this->app->getAppPath();
         if (!empty($name)) {
@@ -121,8 +136,22 @@ class ValidateAll extends Make
     public function getTablesField($db, $tablename)
     {
 
-        $sql = "select COLUMN_NAME as field, DATA_TYPE as type, COLUMN_COMMENT as  comment,is_NULLABLE as notnull from information_schema.columns
+        if ($this->is_postgressql) {
+
+            $sql = "SELECT 
+            a.attname as field,
+            format_type(a.atttypid,a.atttypmod) as type,
+            col_description(a.attrelid,a.attnum) as comment,
+            a.attnotnull as notnull   
+            FROM pg_class as c,pg_attribute as a 
+            where c.relname = '$tablename' and a.attrelid = c.oid and a.attnum>0;";
+
+        } else {
+
+            $sql = "select COLUMN_NAME as field, DATA_TYPE as type, COLUMN_COMMENT as  comment,is_NULLABLE as notnull from information_schema.columns
                     where table_name='$tablename'";
+
+        }
 
         $fields = $db->query($sql);
         // 生成模板
@@ -137,17 +166,21 @@ class ValidateAll extends Make
         ];
         //忽略ID
         $ignorefield = ['id', 'bz', 'memo', 'createdate', 'createtime', 'remark', 'status', 'zt'];
+
         //生成枯
         foreach ($fields as $data) {
+            if ($data['type'] == '-')
+                continue;
 
             $field = $data['field'];
-            if ($this->allfield) {
-                if (in_array($field, $ignorefield))
-                    continue;
-            } else {
+            if (in_array($field, $ignorefield))
+                continue;
 
-                if ($data['notnull'] == 'NO')
+            if (!$this->allfield) {
+
+                if ($data['notnull'] == 'NO'  || ((bool)('' === $data['notnull']))) {
                     continue;
+                }
             }
             $retdata['rule'] .= sprintf($templates['rule'], $field);
             $retdata['message'] .= sprintf($templates['message'], $field, !empty($data['comment']) ? $data['comment'] : $field);
@@ -162,6 +195,11 @@ class ValidateAll extends Make
         return empty($model) ? 'app\\validate' : 'app\\' . $model . '\\validate';
     }
 
+
+    protected function isPgsql()
+    {
+
+    }
 
     protected function getStub()
     {

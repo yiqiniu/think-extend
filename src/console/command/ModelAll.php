@@ -57,10 +57,22 @@ class ModelAll extends Make
             $this->output->error('database not  setting.');
             return;
         }
-        $tablelist = Db::connect($default?:$connect)->table('information_schema.tables')
-            ->where('table_schema', $connect['database'])
-            ->field('table_name as name,table_comment as comment')
-            ->select();
+        $dbtype = strtolower($connect['type']);
+        if(strpos($dbtype,'pgsql')!=false){
+            $tablelist = Db::connect($default?:$connect)->table('pg_class')
+                ->field(['relname as name',"cast(obj_description(relfilenode,'pg_class') as varchar) as comment"])
+                ->where('relname','in',function ($query){
+                    $query->table('pg_tables')
+                        ->where('schemaname','public')
+                        ->whereRaw("position('_2' in tablename)=0")->field('tablename');
+                })->select();
+
+        }else{
+            $tablelist = Db::connect($default?:$connect)->table('information_schema.tables')
+                ->where('table_schema', $connect['database'])
+                ->field('table_name as name,table_comment as comment')
+                ->select();
+        }
         //select table_name,table_comment from information_schema.tables where table_schema='yiqiniu_new';
 
         // 获取数据库配置
