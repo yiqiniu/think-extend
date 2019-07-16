@@ -22,9 +22,11 @@ class AuthMiddleware
 
         $no_auth = Config::get('yqnapi.no_auth');
 
+        $controller = strtolower($request->controller());
+        $action = strtolower($request->action());
         // 不需要认证,直接下一个操作
-        if (in_array($request->action(), $no_auth['action']) ||
-            in_array($request->controller(), $no_auth['controller'])) {
+        if (in_array($controller.'/'.$action, $no_auth['action']) ||
+            in_array($controller, $no_auth['controller'])) {
             return $next($request);
 
         }

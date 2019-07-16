@@ -8,7 +8,7 @@ use think\Facade;
  * @see yiqiniu\library\Date
  * @method mixed parse( $date) static     日期分析
  * @method mixed set( $date) static     日期参数设置
- * @method mixed format( $type) static     日期格式化
+ * @method mixed format( $type=0) static     日期格式化
  * @method mixed valid( $date) static     验证日期数据是否有效
  * @method mixed isLeapYear( $year) static     是否为闰年
  * @method mixed between( $sdate, $edate) static     计算日期差

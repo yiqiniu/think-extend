@@ -1,7 +1,7 @@
 {
     "name": "yiqiniu/think-extend",
     "description": "think php 5.1 extend library",
-    "type": "library",
+    "type": "think-extend",
     "license": "MIT",
     "authors": [
         {

@@ -27,7 +27,7 @@ class Token
      */
     public function __construct($key = '')
     {
-        $this->key = config('yqnapi.auth.token_key', $key);
+        $this->key = config('yqnapi.auth.token_key');
     }
 
 

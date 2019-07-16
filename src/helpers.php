@@ -63,7 +63,7 @@ if (!function_exists('api_result')) {
         }
         $result = [
             'code' => $code,
-            'msg' => $msg != '' ? $msg : (config('status.')[$code]),
+            'msg' => $msg != '' ? $msg : (API_STATUS_TEXT[$code]??''),
             'time' => time(),
             'data' => $data
         ];
@@ -212,8 +212,8 @@ if (!function_exists('get_browser_type')) {
 // 注册命令行指令
 \think\Console::addDefaultCommands([
     '\\yiqiniu\\console\\command\\MakeFacade',
-    'make:model_all'=>'\\yiqiniu\\console\\command\\ModelAll',
-    'make:validate_all'=>'\\yiqiniu\\console\\command\\ValidateAll',
+    'make:model_all' => '\\yiqiniu\\console\\command\\ModelAll',
+    'make:validate_all' => '\\yiqiniu\\console\\command\\ValidateAll',
     '\\yiqiniu\\console\\command\\Compress',
     '\\yiqiniu\\console\\command\\UuidKey',
 ]);

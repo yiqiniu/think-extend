@@ -4,11 +4,13 @@ return [
 
     //不需要认证的操作
     'no_auth' => [
-        'module'=>[
+        'module' => [
 
         ],
         // 不需要认证的操作
-        'action' => ['login'],
+        'action' => [
+            'users/login'
+        ],
         // 不需要认证的控制器
         'controller' => [],
 
@@ -22,6 +24,9 @@ return [
         9 => '其它'
     ],
 
-    'token_key'=>'',
+    'auth' => [
+        'token_key' => '',
+    ],
+
 
 ];
