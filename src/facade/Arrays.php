@@ -5,7 +5,7 @@ namespace yiqiniu\facade;
 
 use think\Facade;
 /**
- * @see yiqiniu\library\Arrays
+ * @see \yiqiniu\library\Arrays
  * @method mixed removeEmpty( $arr, $trim = '1') static     从数组中删除空白的元素（包括只有空白字符的元素）
  * @method mixed removeKey( $array, $keys) static     去掉指定的项
  * @method mixed toTree( $arr, $key_node_id, $key_parent_id = 'parent_id', $key_childrens = 'children', $treeIndex =  '', $refs =  '') static     将一个平面的二维数组按照指定的字段转换为树状结构
@@ -25,9 +25,13 @@ use think\Facade;
  * @method mixed replace( $array, $arr) static     替换数组中的某个值
  * @method mixed fill( $array, $string, $pos = 'left') static     将数组中的每个元素的头或尾填充字符串
  * @method mixed array_extend( $arr, $name = 'attr') static     把数组中某个值展开,合成为一个数组,主要用于扩展的
+ * @method mixed array_columns( $input, $column_keys, $pk) static     返回数组中指定多列
+ * @method mixed info_columns( $info, $column_keys) static
+ * @method mixed list_to_tree( $list, $pk = 'id', $pid = 'pid', $child = 'children', $root =  '') static     把返回的数据集转换成Tree
+ * @method mixed tree_to_list( $tree, $child = 'children', $order = 'id', $list =  '') static     将list_to_tree的树还原成列表
+ * @method mixed list_sort_by( $list, $field, $sortby = 'asc') static     对二维数组进行排序
 
-
- */
+*/
 class Arrays extends Facade
 {
     /**
