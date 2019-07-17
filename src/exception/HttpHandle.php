@@ -11,14 +11,12 @@ use think\exception\Handle;
 class HttpHandle extends Handle
 {
 
-    /**
-     * @param Exception $e
-     * @return \think\Response|\think\response\Json
-     */
-    public function render(Exception $e)
-    {
-        Logger::exception($e);
-        parent::render($e);
+
+    public function report(Exception $exception){
+        Logger::exception($exception);
+        return parent::render($exception);
     }
+
+   
 
 }

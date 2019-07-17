@@ -10,7 +10,6 @@
         }
     ],
     "require": {
-        "topthink/think-installer": "2.*",
         "firebase/php-jwt":"^5.0.0"
 
     },
