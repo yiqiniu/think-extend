@@ -24,7 +24,8 @@
     },
     "extra": {
         "think-config": {
-            "yqnapi": "src/config/yqnapi.php"
+            "yqnapi": "src/config/yqnapi.php",
+            "paginate": "src/config/paginate.php"
         }
     },
     "minimum-stability": "dev"
