@@ -51,15 +51,15 @@ if (!function_exists('api_result')) {
             $code = API_EXCEPTION;
         } elseif (is_object($code)) {
             $data = $code->toArray();
-            $code = 200;
+            $code = API_SUCCESS;
         } else if (is_array($code)) {
             $data = $code;
-            $code = 200;
+            $code = API_SUCCESS;
         } else if (is_string($code)) {
             $msg = $code;
-            $code = 200;
+            $code = API_SUCCESS;
         } else {
-            $code = 200;
+            $code = API_SUCCESS;
         }
         $result = [
             'code' => $code,
@@ -118,7 +118,7 @@ if (!function_exists('result')) {
                     $opts[CURLOPT_POSTFIELDS] = $params;
                     break;
                 default:
-                    exception_api(400, '不支持的请求方式！');
+                    api_exception(API_VAILD_EXCEPTION, '不支持的请求方式！');
             }
             /* 初始化并执行curl请求 */
             $ch = curl_init();
@@ -127,7 +127,7 @@ if (!function_exists('result')) {
             $error = curl_error($ch);
             curl_close($ch);
             if ($error)
-                exception_api(400, '请求发生错误：' . $error);
+                api_exception(API_VAILD_EXCEPTION, '请求发生错误：' . $error);
             return $data;
         } catch (\Exception $e) {
             throw $e;
