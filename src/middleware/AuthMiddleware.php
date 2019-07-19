@@ -42,11 +42,11 @@ class AuthMiddleware
 
         // 不存在,返回错误
         if (empty($auth)) {
-            return api_result(API_ERROR, '登录超时,请重新登录');
+            return api_result(API_TIMEOUT, '登录超时,请重新登录');
         }
         // 解析并到设置request中
         if (!$this->parseInfo($auth, $request, $header)) {
-            return api_result(API_ERROR, '非法的用户请求');
+            return api_result(API_TIMEOUT, '非法的用户请求');
         }
         return $next($request);
     }
