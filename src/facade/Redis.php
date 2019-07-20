@@ -6,7 +6,7 @@
  * Time: 上午10:59
  */
 
-namespace facade;
+namespace yiqiniu\facade;
 
 use think\Facade;
 

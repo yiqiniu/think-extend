@@ -29,23 +29,30 @@ class ModelAll extends Make
         'model' => 'model',
     ];
 
-    protected $app=null;
+    protected $app = null;
     // 不能当做类名的表名
 
-    protected $keywords = ['Abstract','Class','Traits'];
+    protected $keywords = ['Abstract', 'Class', 'Traits'];
+
+    // 数据库架构名,PGsql 有效
+    protected $schema_name = 'public';
+
+    //是否pgsql数据库
+    protected $is_postgressql = false;
 
     protected function configure()
     {
         $this->setName('make:modelall')
-            ->addArgument('m', Argument::OPTIONAL, "specified Module name")
-            ->setDescription('make database  all table  ');
+            ->addArgument('schema', Argument::OPTIONAL, "Specified schema name")
+            ->addArgument('module', Argument::OPTIONAL, "Specify module name")
+            ->setDescription('Generate all models from the database');
     }
 
 
     protected function execute(Input $input, Output $output)
     {
 
-        $this->app= App::getInstance();
+        $this->app = App::getInstance();
         $default = $this->app->config->get('database.default', '');
         if (!empty($default)) {
             $connect = $this->app->config->get('database.connections.' . $default);
@@ -57,14 +64,30 @@ class ModelAll extends Make
             $this->output->error('database not  setting.');
             return;
         }
-        $tablelist = Db::connect($default?:$connect)->table('information_schema.tables')
-            ->where('table_schema', $connect['database'])
-            ->field('table_name as name,table_comment as comment')
-            ->select();
+        $this->is_postgressql = strpos(strtolower($connect['type']), 'pgsql');
+        if ($this->is_postgressql != false) {
+
+            if ($schema = trim($input->getArgument('schema'))) {
+                $this->schema_name = $schema;
+            }
+            $tablelist = Db::connect($default ?: $connect)->table('pg_class')
+                ->field(['relname as name', "cast(obj_description(relfilenode,'pg_class') as varchar) as comment"])
+                ->where('relname', 'in', function ($query) {
+                    $query->table('pg_tables')
+                        ->where('schemaname', $this->schema_name)
+                        ->whereRaw("position('_2' in tablename)=0")->field('tablename');
+                })->select();
+
+        } else {
+            $tablelist = Db::connect($default ?: $connect)->table('information_schema.tables')
+                ->where('table_schema', $connect['database'])
+                ->field('table_name as name,table_comment as comment')
+                ->select();
+        }
         //select table_name,table_comment from information_schema.tables where table_schema='yiqiniu_new';
 
         // 获取数据库配置
-        $name = trim($input->getArgument('m'));
+        $name = trim($input->getArgument('module'));
         $apppath = $this->app->getAppPath();
         if (!empty($name)) {
             $dirname = $apppath . $name . '\\model\\';
@@ -104,7 +127,7 @@ class ModelAll extends Make
 
             $tablename = '';
             if (in_array($class_name, $this->keywords)) {
-                $class_name = $class_name.'Model';
+                $class_name = $class_name . 'Model';
                 $tablename = "protected \$name='" . substr($table['name'], $prefix_len) . "';";
             }
             $model_file = $dirname . $class_name . '.php';
@@ -129,7 +152,7 @@ class ModelAll extends Make
     {
 
 
-        return  empty($app)?'app\\model':'app\\'.$app.'\\model';
+        return empty($app) ? 'app\\model' : 'app\\' . $app . '\\model';
     }
 
 
@@ -148,9 +171,9 @@ class ModelAll extends Make
      * 字符串命名风格转换
      * type 0 将Java风格转换为C的风格 1 将C风格转换为Java的风格
      * @access public
-     * @param string  $name    字符串
-     * @param integer $type    转换类型
-     * @param bool    $ucfirst 首字母是否大写（驼峰规则）
+     * @param string $name 字符串
+     * @param integer $type 转换类型
+     * @param bool $ucfirst 首字母是否大写（驼峰规则）
      * @return string
      */
     public static function parseName($name = null, $type = 0, $ucfirst = true)

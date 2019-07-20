@@ -5,6 +5,7 @@ namespace yiqiniu\console\command;
 
 
 use ReflectionClass;
+use think\App;
 use think\console\command\Make;
 use think\console\Input;
 use think\console\input\Argument;
@@ -49,9 +50,9 @@ class MakeFacade extends Make
             $this->output->writeln('<error>' . $class_name . ': class not exists.</error>');
             exit;
         }
-        $this->app= App::getInstance();
 
         $module_name = trim($input->getArgument('module'));
+        $this->app = App::getInstance();
 
         try {
             // 解析当前类
