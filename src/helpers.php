@@ -1,9 +1,7 @@
 <?php
 
-use think\Exception;
 use think\exception\HttpResponseException;
 use think\facade\Response;
-use yiqiniu\exception\ApiException;
 use yiqiniu\facade\Logger;
 
 if (!function_exists('exception_api')) {
@@ -28,16 +26,14 @@ if (!function_exists('exception_api')) {
 }
 
 
-
-
-if (!function_exists('result')) {
+if (!function_exists('api_result')) {
     /** 输出返回结果
      * @param $code
      * @param string $msg
      * @param array $data
      * @throws HttpResponseException
      */
-    function result($code, $msg = '', $data = [])
+    function api_result($code, $msg = '', $data = [])
     {
 
         if ($code instanceof yiqiniu\exception\ApiException) {
