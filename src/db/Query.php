@@ -62,7 +62,7 @@ class Query extends \think\db\Query
      * @return mixed            返回执行的结果
      * @throws Exception
      */
-    public function procedure($sql, ...$argv)
+    public function execute_procedure($sql, ...$argv)
     {
         try {
             $sql = vsprintf($sql, $argv);

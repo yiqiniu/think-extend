@@ -28,7 +28,7 @@
             ]
         },
         "config": {
-            "yqnapi": "src/yqnapi.php"
+          "yqnapi": "src/config/yqnapi.php"
         }
     },
     "minimum-stability": "dev"
