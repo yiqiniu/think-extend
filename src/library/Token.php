@@ -34,28 +34,50 @@ class Token
      * @param $data 加密的数据
      * @param int $is_exp 是否加入有效时间
      * @param int $time 有效时长
-     * @return string
+     * @return array
      */
     public function getToken($data, $is_exp = 1, $time = DAY_SECOND)
     {
         try {
             $this->checkKey();
-            $token['iss'] = request()->Domain();
-            $token['aud'] = request()->Domain();
-            $token['iat'] = time();
-            $token['aud'] = time();
+
+            $time = time(); //当前时间
+
+            //公用信息
+            $token = [
+                'iss' => request()->Domain(), //签发者 可选
+                'iat' => $time, //签发时间
+                'data' => $data
+
+            ];
+
+            $access_token = $token;
+            $access_token['scopes'] = 'role_access'; //token标识，请求接口的token
             if ($is_exp) {
-                $token['exp'] = time() + $time;
+                $access_token['exp'] = AUTH_TIME; //access_token过期时间,这里设置6个小时
             }
-            $token['data'] = $data;
-            $jwt = JWT::encode($token, $this->key);
-            return $jwt;
+
+
+            $refresh_token = $token;
+            $refresh_token['scopes'] = 'role_refresh'; //token标识，刷新access_token
+            if ($is_exp) {
+                $refresh_token['exp'] = $time + (86400 * 30); //access_token过期时间,这里设置30天
+            }
+
+
+            return [
+                'access_token' => JWT::encode($access_token, $this->key),
+                'refresh_token' => JWT::encode($refresh_token, $this->key),
+                'token_type' => 'bearer' //token_type：表示令牌类型，该值大小写不敏感，这里用bearer
+            ];
+
         } catch (ApiException $e) {
             throw  $e;
         } catch (\Exception $e) {
             throw  $e;
         }
     }
+
 
     /**
      * 检查 是否设置Token Key
