@@ -4,13 +4,13 @@ use think\exception\HttpResponseException;
 use think\facade\Response;
 use yiqiniu\facade\Logger;
 
-if (!function_exists('exception_api')) {
+if (!function_exists('api_exception')) {
     /**
      * @param int $code 异常代码
      * @param string $msg 异常信息
      * @throws \yiqiniu\exception\ApiException
      */
-    function exception_api($code, $msg)
+    function api_exception($code, $msg)
     {
         if (!is_numeric($code) && !empty($msg)) {
             $msg2 = $code;
@@ -19,7 +19,7 @@ if (!function_exists('exception_api')) {
         }
         if (!is_numeric($code)) {
             $msg = $code;
-            $code = 400;
+            $code = API_VAILD_EXCEPTION;
         }
         throw  new yiqiniu\exception\ApiException($msg, $code);
     }
@@ -49,15 +49,15 @@ if (!function_exists('api_result')) {
             $code = $code->getCode();
         } elseif (is_object($code)) {
             $data = $code->toArray();
-            $code = 200;
+            $code = API_SUCCESS;
         } else if (is_array($code)) {
             $data = $code;
-            $code = 200;
+            $code = API_SUCCESS;
         } else if (is_string($code)) {
             $msg = $code;
-            $code = 200;
+            $code = API_SUCCESS;
         } else {
-            $code = 200;
+            $code = API_SUCCESS;
         }
         $result = [
             'code' => $code,
@@ -116,7 +116,7 @@ if (!function_exists('result')) {
                     $opts[CURLOPT_POSTFIELDS] = $params;
                     break;
                 default:
-                    exception_api(400, '不支持的请求方式！');
+                    api_exception(API_VAILD_EXCEPTION, '不支持的请求方式！');
             }
             /* 初始化并执行curl请求 */
             $ch = curl_init();
@@ -125,7 +125,7 @@ if (!function_exists('result')) {
             $error = curl_error($ch);
             curl_close($ch);
             if ($error)
-                exception_api(400, '请求发生错误：' . $error);
+                api_exception(API_VAILD_EXCEPTION, '请求发生错误：' . $error);
             return $data;
         } catch (\Exception $e) {
             throw $e;
