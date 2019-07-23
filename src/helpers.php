@@ -50,7 +50,7 @@ if (!function_exists('api_result')) {
             // 验证异常
             $msg = $code->getMessage();
             $code = API_VAILD_EXCEPTION;
-        } elseif (is_object($code)) {
+        } elseif ($code instanceof \think\Model) {
             $data = $code->toArray();
             $code = API_SUCCESS;
         } else if (is_array($code)) {
