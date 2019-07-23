@@ -46,6 +46,10 @@ if (!function_exists('api_result')) {
             Logger::exception($code);
             $msg = $code->getMessage();
             $code = $code->getCode();
+        } elseif ($code instanceof \think\exception\ValidateException) {
+            // 验证异常
+            $msg = $code->getMessage();
+            $code = API_VAILD_EXCEPTION;
         } elseif (is_object($code)) {
             $data = $code->toArray();
             $code = API_SUCCESS;

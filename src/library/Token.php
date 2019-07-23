@@ -54,14 +54,14 @@ class Token
             $access_token = $token;
             $access_token['scopes'] = 'role_access'; //token标识，请求接口的token
             if ($is_exp) {
-                $access_token['exp'] = AUTH_TIME; //access_token过期时间,这里设置6个小时
+                $access_token['exp'] = $time + AUTH_TIME; //access_token过期时间,这里设置6个小时
             }
 
 
             $refresh_token = $token;
             $refresh_token['scopes'] = 'role_refresh'; //token标识，刷新access_token
             if ($is_exp) {
-                $refresh_token['exp'] = $time + (86400 * 30); //access_token过期时间,这里设置30天
+                $refresh_token['exp'] = $time + (DAY_SECOND * 30); //access_token过期时间,这里设置30天
             }
 
 
