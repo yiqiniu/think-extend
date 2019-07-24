@@ -48,7 +48,7 @@ class Token
      * @param int $time 有效时长
      * @return string
      */
-    public function getToken($data, $is_exp = 1, $time = DAY_SECOND)
+    public function getToken($data, $is_exp = 1, $time = AUTH_TIME)
     {
         try {
             $this->checkKey();
