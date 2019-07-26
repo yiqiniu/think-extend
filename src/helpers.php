@@ -4,6 +4,7 @@
 // 处理成功
 
 use yiqiniu\facade\Logger;
+use yiqiniu\facade\Token;
 
 
 if (!function_exists('api_exception')) {
@@ -208,6 +209,25 @@ if (!function_exists('get_browser_type')) {
     }
 }
 
+if (!function_exists('api_refresh_token')) {
+    /**
+     * 刷新token
+     * @throws HttpResponseException
+     */
+    function api_refresh_token()
+    {
+        //获取用户的认证信息
+        $header = request()->header();
+        $refresh_token = request()->post('refresh_token', '');
+        if (!empty($refresh_token)) {
+            $tokenBody = Token::verifyToken($refresh_token, $header['app'] ?? '');
+            $token = Token::getToken($tokenBody);
+            return api_result($token);
+        } else {
+            api_result(API_VAILD_EXCEPTION, 'refresh_token 不能为空');
+        }
+    }
+}
 
 // 注册命令行指令
 \think\Console::addDefaultCommands([
