@@ -2,6 +2,7 @@
 
 use think\exception\HttpResponseException;
 use yiqiniu\facade\Logger;
+use yiqiniu\facade\Token;
 
 if (!function_exists('api_exception')) {
     /**
@@ -73,6 +74,25 @@ if (!function_exists('api_result')) {
     }
 }
 
+
+if (!function_exists('api_refresh_token')) {
+    /**
+     * 刷新token
+     */
+    function api_refresh_token()
+    {
+        //获取用户的认证信息
+        $header = request()->header();
+        $refresh_token = request()->post('refresh_token', '');
+        if (!empty($refresh_token)) {
+            $tokenBody = Token::verifyToken($refresh_token, $header['app'] ?? '');
+            $token = Token::getToken($tokenBody);
+            api_result($token);
+        } else {
+            api_result(API_VAILD_EXCEPTION, 'refresh_token 不能为空');
+        }
+    }
+}
 
 if (!function_exists('httpRequest')) {
     /**

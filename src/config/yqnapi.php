@@ -1,6 +1,6 @@
 <?php
 
-return [
+$api_config = [
 
     //不需要认证的操作
     'no_auth' => [
@@ -30,3 +30,13 @@ return [
 
 
 ];
+
+/**
+ *  开启刷新token功能
+ */
+\think\facade\Route::post('api/refresh_token', function () {
+    api_refresh_token();
+});
+
+
+return $api_config;

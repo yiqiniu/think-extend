@@ -18,7 +18,9 @@ CONST HOUR_SECOND = 3600;
 // 1天 = 86400秒
 CONST DAY_SECOND = HOUR_SECOND * 24;
 // 用户登陆超时时间 秒  1天 = 86400秒
-const AUTH_TIME = DAY_SECOND * 10;
+const TOKEN_AUTH_TIME = DAY_SECOND * 3;
+// 刷新toke的有效为 10 天
+const REFRESH_TOKEN_TIMEOUT = DAY_SECOND * 10;
 // 用户验证缓存时间 秒
 const REFRESH_TIME = 60;
 // 手机验证码绑在时间

@@ -33,10 +33,10 @@ class Token
     /**
      * @param $data 加密的数据
      * @param int $is_exp 是否加入有效时间
-     * @param int $time 有效时长
      * @return array
+     * @throws ApiException
      */
-    public function getToken($data, $is_exp = 1, $time = DAY_SECOND)
+    public function getToken($data, $is_exp = 1)
     {
         try {
             $this->checkKey();
@@ -54,21 +54,20 @@ class Token
             $access_token = $token;
             $access_token['scopes'] = 'role_access'; //token标识，请求接口的token
             if ($is_exp) {
-                $access_token['exp'] = $time + AUTH_TIME; //access_token过期时间,这里设置6个小时
+                $access_token['exp'] = $time + TOKEN_AUTH_TIME; //access_token过期时间,这里设置6个小时
             }
 
 
             $refresh_token = $token;
             $refresh_token['scopes'] = 'role_refresh'; //token标识，刷新access_token
             if ($is_exp) {
-                $refresh_token['exp'] = $time + (DAY_SECOND * 30); //access_token过期时间,这里设置30天
+                $refresh_token['exp'] = $time + REFRESH_TOKEN_TIMEOUT; //access_token过期时间,这里设置30天
             }
 
 
             return [
                 'access_token' => JWT::encode($access_token, $this->key),
                 'refresh_token' => JWT::encode($refresh_token, $this->key),
-                'token_type' => 'bearer' //token_type：表示令牌类型，该值大小写不敏感，这里用bearer
             ];
 
         } catch (ApiException $e) {
