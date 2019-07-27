@@ -63,7 +63,7 @@ class ValidateAll extends Make
             return;
         }
 
-        $this->is_postgressql = strpos(strtolower($connect['type']), 'pgsql');
+        $this->is_postgressql = stripos($connect['type'], 'pgsql');
         if ($this->is_postgressql != false) {
 
             if ($schema = trim($input->getArgument('schema'))) {
@@ -96,8 +96,8 @@ class ValidateAll extends Make
         } else {
             $dirname = $apppath . 'validate\\';
         }
-        if (!file_exists($dirname)) {
-            mkdir($dirname, 0644, true);
+        if (!file_exists($dirname) && !mkdir($dirname, 0644, true) && !is_dir($dirname)) {
+            throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirname));
         }
         // 获取生成空间的名称
         $namespace = $this->getNamespace2($name);
@@ -113,7 +113,7 @@ class ValidateAll extends Make
         $model_stub = file_get_contents($stubs['validate']);
 
         // table 类用于获取字段
-        $dbs = Db::connect($default ?: $connect)->getConnection();
+        $dbs = Db::connect($default ?: $connect);
 
         foreach ($tablelist as $k => $table) {
             $class_name = $this->parseName(substr($table['name'], $prefix_len), 1, true);
