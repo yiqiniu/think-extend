@@ -64,7 +64,7 @@ class ModelAll extends Make
             $this->output->error('database not  setting.');
             return;
         }
-        $this->is_postgressql = strpos(strtolower($connect['type']), 'pgsql');
+        $this->is_postgressql = stripos($connect['type'], 'pgsql');
         if ($this->is_postgressql != false) {
 
             if ($schema = trim($input->getArgument('schema'))) {
@@ -95,7 +95,9 @@ class ModelAll extends Make
             $dirname = $apppath . 'model\\';
         }
         if (!file_exists($dirname)) {
-            mkdir($dirname, 0644, true);
+            if (!mkdir($dirname, 0644, true) && !is_dir($dirname)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirname));
+            }
         }
         // 获取生成空间的名称
         $namespace = $this->getNamespace2($name);
@@ -127,7 +129,7 @@ class ModelAll extends Make
 
             $tablename = '';
             if (in_array($class_name, $this->keywords)) {
-                $class_name = $class_name . 'Model';
+                $class_name .= 'Model';
                 $tablename = "protected \$name='" . substr($table['name'], $prefix_len) . "';";
             }
             $model_file = $dirname . $class_name . '.php';
