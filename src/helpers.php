@@ -75,7 +75,7 @@ if (!function_exists('api_result')) {
 }
 
 
-if (!function_exists('result')) {
+if (!function_exists('httpRequest')) {
     /**
      * 发送HTTP请求方法，目前只支持CURL发送请求
      * @param string $url 请求URL
