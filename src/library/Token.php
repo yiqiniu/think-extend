@@ -104,21 +104,21 @@ class Token
             JWT::$timestamp = time();//当前时间
             $decoded = JWT::decode($jwt, $this->key, ['HS256']); //HS256方式，这里要和签发的时候对应
             if (empty($decoded->data) || $decoded->data->app != $app) {
-                api_exception(401, '登录修改无效,请重新登录');
+                api_exception(API_TIMEOUT, '登录修改无效,请重新登录');
             }
             return (array)$decoded->data;
         } catch (SignatureInvalidException $e) {
-            api_exception(API_EXCEPTION, "登录审核证书已过期,请重新登录");//验签失败
+            api_exception(API_TIMEOUT, "登录审核证书已过期,请重新登录");//验签失败
         } catch (BeforeValidException $e) { //未捕获的异常
-            api_exception(API_EXCEPTION, $e->getMessage());
+            api_exception(API_TIMEOUT, $e->getMessage());
         } catch (\UnexpectedValueException $e) {//字符串格式不正确
-            api_exception(API_EXCEPTION, '无效的授权，请重新登录');
+            api_exception(API_TIMEOUT, '无效的授权，请重新登录');
         } catch (ExpiredException $e) { // token过期
-            api_exception(API_EXCEPTION, '授权已过期，请重新登录');
+            api_exception(API_TIMEOUT, '授权已过期，请重新登录');
         } catch (ApiException $e) {
-            api_exception(API_EXCEPTION, $e->getMessage());
+            api_exception(API_TIMEOUT, $e->getMessage());
         } catch (\Exception $e) { //其他错误
-            api_exception(API_EXCEPTION, $e->getMessage());
+            api_exception(API_TIMEOUT, $e->getMessage());
         }
     }
 
@@ -136,23 +136,23 @@ class Token
             $tag_data = (array)$decoded->data;
             foreach ($data as $k => $v) {
                 if (!array_key_exists($k, $tag_data)) {
-                    api_exception(API_EXCEPTION, '验证失败');
+                    api_exception(API_TIMEOUT, '验证失败');
                 }
                 if ($tag_data[$k] != $data[$k]) {
-                    api_exception(API_EXCEPTION, '验证失败');
+                    api_exception(API_TIMEOUT, '验证失败');
                 }
             }
             return $data;
         } catch (ApiException $e) {
             throw  $e;
         } catch (SignatureInvalidException $e) {
-            api_exception(API_EXCEPTION, "登陆超时");//验签失败
+            api_exception(API_TIMEOUT, "登陆超时");//验签失败
         } catch (BeforeValidException $e) { //未捕获的异常
-            api_exception(API_EXCEPTION, $e->getMessage());
+            api_exception(API_TIMEOUT, $e->getMessage());
         } catch (\UnexpectedValueException $e) {//字符串格式不正确
-            api_exception(API_EXCEPTION, '长时间未操作，请重新登录');
+            api_exception(API_TIMEOUT, '长时间未操作，请重新登录');
         } catch (ExpiredException $e) { // token过期
-            api_exception(API_EXCEPTION, '登录凭证失效');
+            api_exception(API_TIMEOUT, '登录凭证失效');
         } catch (\Exception $e) { //其他错误
             api_exception($e->getMessage());
         }
