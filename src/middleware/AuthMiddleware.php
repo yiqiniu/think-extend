@@ -24,6 +24,9 @@ class AuthMiddleware
 
         $controller = strtolower($request->controller());
         $action = strtolower($request->action());
+        $header = $request->header();
+        //加入对APP的处理
+        $request->app = $header['app'] ?? '';
         // 不需要认证,直接下一个操作
         if (in_array($controller . '/' . $action, $no_auth['action']) ||
             in_array($controller, $no_auth['controller'])) {
@@ -31,7 +34,7 @@ class AuthMiddleware
 
         }
         //获取用户的认证信息
-        $header = $request->header();
+
         if (isset($header['Authorization'])) {
             $auth = $header['Authorization'];
         } elseif (isset($header['authorization'])) {
@@ -39,8 +42,6 @@ class AuthMiddleware
         } else {
             $auth = '';
         }
-        //加入对APP的处理
-        $request->app = $header['app'] ?? '';
 
         // 不存在,返回错误
         if (empty($auth)) {
