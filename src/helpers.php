@@ -44,12 +44,12 @@ if (!function_exists('api_result')) {
             if (isset($data['data']))
                 $data = $data['data'];
             $msg = $code->getMessage();
-            $code = API_EXCEPTION;
+            $code = $code->getCode();
         } elseif ($code instanceof think\Exception) {
             // 记录异常
             Logger::exception($code);
             $msg = $code->getMessage();
-            $code = API_EXCEPTION;
+            $code = $code->getCode();
         } elseif (is_object($code)) {
             $data = $code->toArray();
             $code = API_SUCCESS;
@@ -64,7 +64,7 @@ if (!function_exists('api_result')) {
         }
         $result = [
             'code' => $code,
-            'msg' => $msg != '' ? $msg : (API_STATUS_TEXT[$code]??''),
+            'msg' => $msg != '' ? $msg : (API_STATUS_TEXT[$code] ?? ''),
             'time' => time(),
             'data' => $data
         ];
