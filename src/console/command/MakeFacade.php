@@ -8,7 +8,7 @@ use ReflectionClass;
 use think\App;
 use think\console\command\Make;
 use think\console\Input;
-use think\console\input\Argument;
+use think\console\input\Option;
 use think\console\Output;
 use think\Exception;
 
@@ -44,8 +44,8 @@ class MakeFacade extends Make
     {
         parent::configure();
         $this->setName('make:facade')
-            ->addArgument('module', Argument::OPTIONAL, "specified Module name")
-            ->addArgument('dir', Argument::OPTIONAL, "specified app/module/dir name")
+            ->addOption('module', '-m', Option::VALUE_REQUIRED, "specified Module name")
+            ->addOption('dir', '-d', Option::VALUE_NONE, "is dir name")
             ->setDescription('Create a new Facade class ');
     }
 
@@ -56,11 +56,7 @@ class MakeFacade extends Make
         $arguments = $input->getArguments();
 
         $class_name = trim($input->getArgument('name'));
-        if (is_null($arguments['module'])) {
-            $isdir = false;
-        } else {
-            $isdir = ($arguments['module'] == 'dir' && is_null($arguments['dir'])) ? true : false;
-        }
+        $isdir = $input->getOption('dir');
 
 
         $this->app = App::getInstance();
@@ -81,7 +77,7 @@ class MakeFacade extends Make
                 exit;
             }
             $class_list[] = $class_name;
-            $module_name = trim($input->getArgument('module'));
+            $module_name = trim($input->getOption('module'));
 
         } else {
             $class_name = str_replace('/', '\\', $class_name);

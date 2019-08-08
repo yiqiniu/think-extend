@@ -7,7 +7,7 @@ namespace yiqiniu\console\command;
 use think\App;
 use think\console\command\Make;
 use think\console\Input;
-use think\console\input\Argument;
+use think\console\input\Option;
 use think\console\Output;
 use yiqiniu\facade\Db;
 
@@ -43,8 +43,9 @@ class ModelAll extends Make
     protected function configure()
     {
         $this->setName('make:modelall')
-            ->addArgument('schema', Argument::OPTIONAL, "Specified schema name")
-            ->addArgument('module', Argument::OPTIONAL, "Specify module name")
+            ->addOption('force', '-f', Option::VALUE_NONE, "force update")
+            ->addOption('schema', '-s', Option::VALUE_REQUIRED, "specified schema name")
+            ->addOption('module', '-m', Option::VALUE_REQUIRED, "specified Module name")
             ->setDescription('Generate all models from the database');
     }
 
@@ -67,7 +68,7 @@ class ModelAll extends Make
         $this->is_postgressql = stripos($connect['type'], 'pgsql');
         if ($this->is_postgressql != false) {
 
-            if ($schema = trim($input->getArgument('schema'))) {
+            if ($schema = trim($input->getOption('schema'))) {
                 $this->schema_name = $schema;
             }
             $tablelist = Db::connect($default ?: $connect)->table('pg_class')
@@ -87,7 +88,7 @@ class ModelAll extends Make
         //select table_name,table_comment from information_schema.tables where table_schema='yiqiniu_new';
 
         // 获取数据库配置
-        $name = trim($input->getArgument('module'));
+        $name = trim($input->getOption('module'));
         $apppath = $this->app->getAppPath();
         if (!empty($name)) {
             $dirname = $apppath . $name . '\\model\\';
@@ -122,6 +123,8 @@ class ModelAll extends Make
 
         $model_stub = file_get_contents($stubs['model']);
 
+        //强制更新
+        $force_update = $input->getOption('force');
 
         foreach ($tablelist as $k => $table) {
             $class_name = $this->parseName(substr($table['name'], $prefix_len), 1, true);
@@ -133,7 +136,7 @@ class ModelAll extends Make
                 $tablename = "protected \$name='" . substr($table['name'], $prefix_len) . "';";
             }
             $model_file = $dirname . $class_name . '.php';
-            if (!file_exists($model_file)) {
+            if (!file_exists($model_file) || $force_update) {
                 file_put_contents($model_file, str_replace(['{%namespace%}', '{%className%}', '{%comment%}', '{%tablename%}'], [
                     $namespace,
                     $class_name,

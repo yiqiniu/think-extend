@@ -236,6 +236,7 @@ if (!function_exists('api_refresh_token')) {
     'make:validate_all' => '\\yiqiniu\\console\\command\\ValidateAll',
     '\\yiqiniu\\console\\command\\Compress',
     '\\yiqiniu\\console\\command\\UuidKey',
+    '\\yiqiniu\\console\\command\\ValidateTable',
 ]);
 //添加swoole的支持
 if (extension_loaded('swoole')) {

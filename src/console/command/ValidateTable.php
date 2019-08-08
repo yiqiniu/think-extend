@@ -7,6 +7,7 @@ namespace yiqiniu\console\command;
 use think\App;
 use think\console\command\Make;
 use think\console\Input;
+use think\console\input\Argument;
 use think\console\input\Option;
 use think\console\Output;
 use yiqiniu\facade\Db;
@@ -15,7 +16,7 @@ use yiqiniu\facade\Db;
  * Class ModelAll
  * @package yiqiniu\console\command
  */
-class ValidateAll extends Make
+class ValidateTable extends Make
 {
 
     protected $type = 'Command';
@@ -39,18 +40,30 @@ class ValidateAll extends Make
 
     protected function configure()
     {
-        $this->setName('make:validateall')
+        $this->setName('make:validate_table')
+            ->addArgument('name', Argument::REQUIRED, "specified Table name")
+            ->addOption('force', '-f', Option::VALUE_NONE, "force update validate file")
             ->addOption('all', '-a', Option::VALUE_NONE, "Make All Fields")
-            ->addOption('force', '-f', Option::VALUE_NONE, "force update")
             ->addOption('schema', '-s', Option::VALUE_REQUIRED, "specified schema name")
             ->addOption('module', '-m', Option::VALUE_REQUIRED, "specified Module name")
-            ->setDescription('Generate all validations based on database table fields');
+            ->setDescription('Generate Table validations based on database table fields');
     }
 
 
     protected function execute(Input $input, Output $output)
     {
 
+
+        //强制更新
+        $force_update = $input->getOption('force');
+        //全部字段
+        $all = $input->getOption('all');
+        // 指定schema
+        $schema = $input->getOption('schema');
+        // 指定模块
+        $module = $input->getOption('module');
+
+        $table_name = $input->getArgument('name');
         $this->app = App::getInstance();
         $default = $this->app->config->get('database.default', '');
         if (!empty($default)) {
@@ -64,10 +77,16 @@ class ValidateAll extends Make
             return;
         }
 
+        // 生成所有的类
+        $prefix_len = strlen($connect['prefix']);
+        if (substr($table_name, 0, $prefix_len) != $connect['prefix']) {
+            $table_name = $connect['prefix'] . $table_name;
+        }
+
         $this->is_postgressql = stripos($connect['type'], 'pgsql');
         if ($this->is_postgressql != false) {
 
-            if ($schema = trim($input->getOption('schema'))) {
+            if (!empty($schema)) {
                 $this->schema_name = $schema;
             }
             $tablelist = Db::connect($default ?: $connect)->table('pg_class')
@@ -75,25 +94,26 @@ class ValidateAll extends Make
                 ->where('relname', 'in', function ($query) {
                     $query->table('pg_tables')
                         ->where('schemaname', $this->schema_name)
+                        ->where('table_name', '=', $table_name)
                         ->whereRaw("position('_2' in tablename)=0")->field('tablename');
                 })->select();
         } else {
             $tablelist = Db::connect($default ?: $connect)->table('information_schema.tables')
                 ->where('table_schema', $connect['database'])
                 ->field('table_name as name,table_comment as comment')
+                ->where('table_name', '=', $table_name)
                 ->select();
         }
 
         //select table_name,table_comment from information_schema.tables where table_schema='yiqiniu_new';
 
-        // 全部字段
-        $this->allfield = $input->getOption('all');
+        // 全部
+        $this->allfield = $all;
 
         // 获取数据库配置
-        $name = trim($input->getOption('module'));
         $apppath = $this->app->getAppPath();
-        if (!empty($name)) {
-            $dirname = $apppath . $name . '\\validate\\';
+        if (!empty($module)) {
+            $dirname = $apppath . $module . '\\validate\\';
         } else {
             $dirname = $apppath . 'validate\\';
         }
@@ -101,23 +121,17 @@ class ValidateAll extends Make
             throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirname));
         }
         // 获取生成空间的名称
-        $namespace = $this->getNamespace2($name);
+        $namespace = $this->getNamespace2($module);
 
         // 判断 是否有基本BaseModel
 
         $stubs = $this->getStub();
 
 
-        // 生成所有的类
-        $prefix_len = strlen($connect['prefix']);
-
         $model_stub = file_get_contents($stubs['validate']);
 
         // table 类用于获取字段
         $dbs = Db::connect($default ?: $connect);
-        //强制更新
-        $force_update = $input->getOption('force');
-
 
         foreach ($tablelist as $k => $table) {
             $class_name = $this->parseName(substr($table['name'], $prefix_len), 1, true);
@@ -137,11 +151,48 @@ class ValidateAll extends Make
         }
 
 
-        $output->writeln('<info>' . $this->type . ':' . 'All Table Validate created successfully.</info>');
+        $output->writeln('<info>' . $this->type . ':' . 'Table Validate created successfully.</info>');
 
 
     }
 
+    protected function getNamespace2($model)
+    {
+
+
+        return empty($model) ? 'app\\validate' : 'app\\' . $model . '\\validate';
+    }
+
+    protected function getStub()
+    {
+
+        foreach ($this->stubs as $key => $filename) {
+
+            $this->stubs[$key] = __DIR__ . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . $filename . '.stub';
+        }
+        return $this->stubs;
+    }
+
+    /**
+     * 字符串命名风格转换
+     * type 0 将Java风格转换为C的风格 1 将C风格转换为Java的风格
+     * @access public
+     * @param string $name 字符串
+     * @param integer $type 转换类型
+     * @param bool $ucfirst 首字母是否大写（驼峰规则）
+     * @return string
+     */
+    public static function parseName($name = null, $type = 0, $ucfirst = true)
+    {
+        if ($type) {
+            $name = preg_replace_callback('/_([a-zA-Z])/', function ($match) {
+                return strtoupper($match[1]);
+            }, $name);
+            return $ucfirst ? ucfirst($name) : lcfirst($name);
+        }
+
+        return strtolower(trim(preg_replace("/[A-Z]/", "_\\0", $name), "_"));
+    }
 
     /**
      * 获取表的字段
@@ -204,48 +255,8 @@ class ValidateAll extends Make
         return $retdata;
     }
 
-    protected function getNamespace2($model)
-    {
-
-
-        return empty($model) ? 'app\\validate' : 'app\\' . $model . '\\validate';
-    }
-
-
     protected function isPgsql()
     {
 
-    }
-
-    protected function getStub()
-    {
-
-        foreach ($this->stubs as $key => $filename) {
-
-            $this->stubs[$key] = __DIR__ . DIRECTORY_SEPARATOR . 'stubs' . DIRECTORY_SEPARATOR . $filename . '.stub';
-        }
-        return $this->stubs;
-    }
-
-
-    /**
-     * 字符串命名风格转换
-     * type 0 将Java风格转换为C的风格 1 将C风格转换为Java的风格
-     * @access public
-     * @param string $name 字符串
-     * @param integer $type 转换类型
-     * @param bool $ucfirst 首字母是否大写（驼峰规则）
-     * @return string
-     */
-    public static function parseName($name = null, $type = 0, $ucfirst = true)
-    {
-        if ($type) {
-            $name = preg_replace_callback('/_([a-zA-Z])/', function ($match) {
-                return strtoupper($match[1]);
-            }, $name);
-            return $ucfirst ? ucfirst($name) : lcfirst($name);
-        }
-
-        return strtolower(trim(preg_replace("/[A-Z]/", "_\\0", $name), "_"));
     }
 }
