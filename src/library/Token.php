@@ -48,7 +48,7 @@ class Token
      * @return array
      * @throws ApiException
      */
-    public function getToken($data, $is_exp = 1, $app = '')
+    public function getToken($data, $is_exp = 1)
     {
         try {
             $this->checkKey();
@@ -59,7 +59,6 @@ class Token
             $token = [
                 'iss' => request()->Domain(), //签发者 可选
                 'iat' => $time, //签发时间
-                'app' => $app,
                 'data' => $data
             ];
 
@@ -104,8 +103,8 @@ class Token
             $jwt = strpos($jwt, ' ') !== false ? explode(' ', $jwt)[1] : $jwt;
             JWT::$timestamp = time();//当前时间
             $decoded = JWT::decode($jwt, $this->key, ['HS256']); //HS256方式，这里要和签发的时候对应
-            if (empty($decoded->data) || (isset($decoded->app) && $decoded->app != $app)) {
-                api_exception(API_TIMEOUT, '登录修改无效,请重新登录');
+            if (empty($decoded->data) || (isset($decoded->data->app) && $decoded->data->app != $app)) {
+                api_exception(API_TIMEOUT, '登录信息无效,请重新登录');
             }
             return (array)$decoded->data;
         } catch (SignatureInvalidException $e) {
