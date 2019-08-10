@@ -91,7 +91,7 @@ class ValidateTable extends Make
             }
             $tablelist = Db::connect($default ?: $connect)->table('pg_class')
                 ->field(['relname as name', "cast(obj_description(relfilenode,'pg_class') as varchar) as comment"])
-                ->where('relname', 'in', function ($query) {
+                ->where('relname', 'in', function ($query) use ($table_name) {
                     $query->table('pg_tables')
                         ->where('schemaname', $this->schema_name)
                         ->where('table_name', '=', $table_name)
