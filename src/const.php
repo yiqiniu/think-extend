@@ -7,6 +7,9 @@ const API_VAILD_EXCEPTION = 400;
 const API_TIMEOUT = 401;
 // 服务器处理异常 / 客户端自定义处理
 const API_EXCEPTION = 402;
+
+// 访问拒绝
+const API_ACCESS_DENIED = 403;
 // 其他错误
 const API_OTHER_ERROR = 0;
 
