@@ -39,13 +39,19 @@ class MakeFacade extends Make
 
     // 生成错误的类名
     protected $error_files = [];
+    //类的后缀,用于生成目录时
+    protected $suffix = '';
+    // 父类注解
+    protected $parent_annot = '';
+
 
     protected function configure()
     {
         parent::configure();
         $this->setName('make:facade')
-            ->addOption('module', '-m', Option::VALUE_REQUIRED, "specified Module name")
-            ->addOption('dir', '-d', Option::VALUE_NONE, "is dir name")
+            ->addOption('module', '-m', Option::VALUE_REQUIRED, "指定输出的模块")
+            ->addOption('dir', '-d', Option::VALUE_NONE, "是否为目录,目录时批量生成")
+            ->addOption('parent', '-p', Option::VALUE_REQUIRED, "读取父类注释与生成的合并")
             ->setDescription('Create a new Facade class ');
     }
 
@@ -70,6 +76,15 @@ class MakeFacade extends Make
         }
         // 生成类的列表
         $class_list = [];
+        //父类
+        $parent_class = $input->getOption('parent');
+        if (!empty($parent_class)) {
+            if (!class_exists($parent_class)) {
+                $this->output->writeln('<error>' . $parent_class . ': 不存在.</error>');
+            }
+            $this->parent_annot = $this->getClassAnnotation($parent_class);
+        }
+
         //
         if (!$isdir) {
             if (!class_exists($class_name)) {
@@ -81,6 +96,8 @@ class MakeFacade extends Make
 
         } else {
             $class_name = str_replace('/', '\\', $class_name);
+            //类的后缀
+            $this->suffix = ucfirst(substr($class_name, strrpos($class_name, '\\') + 1));
 
             $dirpath = $apppath . $class_name;
             if (!file_exists($dirpath)) {
@@ -138,8 +155,8 @@ class MakeFacade extends Make
             $funs = [];
             //解决类的所有public方法
             foreach ($methods as $method) {
-                if ($method->class !== $class_name)
-                    continue;
+                /* if ($method->class !== $class_name)
+                     continue;*/
                 // 排除特殊的方法
                 if (substr($method->name, 0, 2) == '__')
                     continue;
@@ -200,6 +217,7 @@ class MakeFacade extends Make
             foreach ($funs as $fun) {
                 $method_str .= sprintf($method_format, $fun['return'], $fun['name'], $fun['args'], $fun['comment']);
             }
+            $method_str .= $this->parent_annot;
 
             // 获取生成空间的名称
             $namespace = $this->getNamespace2($module_name);
@@ -220,6 +238,8 @@ class MakeFacade extends Make
 
             // 写入文件
             $model_file = $dirname . $base_class_name . '.php';
+
+            //if(strcasecmp ($this->))
             //  直接替换
             file_put_contents($model_file, str_replace(['{%namespace%}', '{%className%}', ' {%methods%}', '{%fullclassname}'], [
                 $namespace,
@@ -234,6 +254,60 @@ class MakeFacade extends Make
         } catch (Exception $e) {
             $error_files[$class_name] = $e->getMessage();
         }
+    }
+
+    /**
+     * 获取类的注释
+     * @param $classname 类名
+     * @throws \ReflectionException
+     */
+    protected function getClassAnnotation($classname)
+    {
+        try {
+            $ret = '';
+            // 解析当前类
+            $ref = new ReflectionClass($classname);
+            $ret .= $this->getDocComment($ref->getDocComment());
+            $parents = $ref->getParentClass();
+            $level = 0;
+            // 最大读取5层次
+            while ($parents != false && $level < 5) {
+                $ret .= $this->getDocComment($parents->getDocComment());
+                $parents = $parents->getParentClass();
+                $level++;
+            }
+            return $ret;
+
+        } catch (\Exception $e) {
+            var_export($e->getMessage());
+        }
+    }
+
+
+    /**
+     * 返回可用的类注释
+     * @param $docComment
+     * @return string
+     */
+    protected function getDocComment($docComment)
+    {
+
+        $class_comment = str_replace("\r\n", "\n", $docComment);
+        if (strpos($class_comment, "\n") !== false) {
+            $doc = explode("\n", $class_comment);
+            $count = count($doc);
+            if ($count > 4) {
+                unset($doc[count($doc) - 1], $doc[0], $doc[1]);
+                // 删除package
+                foreach ($doc as $k => $v) {
+                    if (stripos($v, 'package') !== false) {
+                        unset($doc[$k]);
+                    }
+                }
+                return implode("\n", $doc);
+            }
+        }
+        return '';
     }
 
     protected function getNamespace2($model)
@@ -277,7 +351,7 @@ class MakeFacade extends Make
     private function classBaseName($class): string
     {
         $class = is_object($class) ? get_class($class) : $class;
-        return basename(str_replace('\\', '/', $class));
+        return basename(str_replace('\\', '/', $class)) . $this->suffix;
     }
 
 }
