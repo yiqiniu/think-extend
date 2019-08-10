@@ -25,7 +25,7 @@ class Socket extends Make
         parent::configure();
         $this->setName('make:socket')
             ->addArgument('commandName', Argument::REQUIRED, "The name of the command")
-            ->addArgument('port', Argument::REQUIRED, "socket Port Number ")
+            ->addOption('port', '-p', Argument::REQUIRED, "socket Port Number ")
             ->setDescription('Create a new Socket Server command class');
     }
 
@@ -44,7 +44,7 @@ class Socket extends Make
     protected function execute(Input $input, Output $output)
     {
         $name = trim($input->getArgument('name'));
-        $port = trim($input->getArgument('port'));
+        $port = trim($input->getOption('port'));
 
         $classname = $this->getClassName($name);
 
