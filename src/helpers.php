@@ -50,8 +50,14 @@ if (!function_exists('api_result')) {
             Logger::exception($code);
             $msg = $code->getMessage();
             $code = $code->getCode();
+        } elseif ($code instanceof \think\exception\ValidateException) {
+            // 验证异常
+            $msg = $code->getMessage();
+            $code = API_VAILD_EXCEPTION;
         } elseif (is_object($code)) {
-            $data = $code->toArray();
+            if (method_exists($code, 'toArray')) {
+                $data = $code->toArray();
+            }
             $code = API_SUCCESS;
         } else if (is_array($code)) {
             $data = $code;
@@ -60,6 +66,7 @@ if (!function_exists('api_result')) {
             $msg = $code;
             $code = API_SUCCESS;
         }
+
         $result = [
             'code' => $code,
             'msg' => $msg != '' ? $msg : (API_STATUS_TEXT[$code] ?? ''),
