@@ -56,10 +56,8 @@ if (!function_exists('api_result')) {
         } else if (is_array($code)) {
             $data = $code;
             $code = API_SUCCESS;
-        } else if (is_string($code)) {
+        } else if (empty($msg) && is_string($code)) {
             $msg = $code;
-            $code = API_SUCCESS;
-        } else {
             $code = API_SUCCESS;
         }
         $result = [
