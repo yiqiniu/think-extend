@@ -51,18 +51,19 @@ if (!function_exists('api_result')) {
             // 验证异常
             $msg = $code->getMessage();
             $code = API_VAILD_EXCEPTION;
-        } elseif ($code instanceof \think\Model) {
-            $data = $code->toArray();
+        } elseif (is_object($code)) {
+            if (method_exists($code, 'toArray')) {
+                $data = $code->toArray();
+            }
             $code = API_SUCCESS;
         } else if (is_array($code)) {
             $data = $code;
             $code = API_SUCCESS;
-        } else if (is_string($code)) {
+        } else if (empty($msg) && is_string($code)) {
             $msg = $code;
             $code = API_SUCCESS;
-        } else {
-            $code = API_SUCCESS;
         }
+        
         $result = [
             'code' => $code,
             'msg' => $msg != '' ? $msg : (config('status.')[$code]),
