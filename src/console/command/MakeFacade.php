@@ -155,8 +155,8 @@ class MakeFacade extends Make
             $funs = [];
             //解决类的所有public方法
             foreach ($methods as $method) {
-                /* if ($method->class !== $class_name)
-                     continue;*/
+                if (stripos($method->class, 'think') !== false)
+                    continue;
                 // 排除特殊的方法
                 if (substr($method->name, 0, 2) == '__')
                     continue;
