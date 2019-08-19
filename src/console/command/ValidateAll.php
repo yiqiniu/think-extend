@@ -93,9 +93,9 @@ class ValidateAll extends Make
         $name = trim($input->getOption('module'));
         $apppath = $this->app->getAppPath();
         if (!empty($name)) {
-            $dirname = $apppath . $name . '\\validate\\';
+            $dirname = $apppath . $name . DIRECTORY_SEPARATOR . 'validate';
         } else {
-            $dirname = $apppath . 'validate\\';
+            $dirname = $apppath . 'validate';
         }
         $dirname .= DIRECTORY_SEPARATOR;
         if (!file_exists($dirname) && !mkdir($dirname, 0644, true) && !is_dir($dirname)) {

@@ -96,7 +96,6 @@ class MakeFacade extends Make
 
         } else {
             $class_name = str_replace('/', DIRECTORY_SEPARATOR, $class_name);
-            echo $class_name;
             //类的后缀
             $this->suffix = ucfirst(substr($class_name, strrpos($class_name, DIRECTORY_SEPARATOR) + 1));
 
