@@ -89,7 +89,6 @@ class ValidateTable extends Make
             if (!empty($schema)) {
                 $this->schema_name = $schema;
             }
-
             $tablelist = Db::connect($default ?: $connect)->table('pg_class')
                 ->field(['relname as name', "cast(obj_description(relfilenode,'pg_class') as varchar) as comment"])
                 ->where('relname', 'in', function ($query) use ($table_name) {
@@ -114,10 +113,11 @@ class ValidateTable extends Make
         // 获取数据库配置
         $apppath = $this->app->getAppPath();
         if (!empty($module)) {
-            $dirname = $apppath . $module . '\\validate\\';
+            $dirname = $apppath . $module . DIRECTORY_SEPARATOR . 'validate';
         } else {
-            $dirname = $apppath . 'validate\\';
+            $dirname = $apppath . 'validate';
         }
+        $dirname .= DIRECTORY_SEPARATOR;
         if (!file_exists($dirname) && !mkdir($dirname, 0644, true) && !is_dir($dirname)) {
             throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirname));
         }
