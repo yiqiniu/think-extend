@@ -95,24 +95,29 @@ class MakeFacade extends Make
             $module_name = trim($input->getOption('module'));
 
         } else {
-            $class_name = str_replace('/', '\\', $class_name);
+            $class_name = str_replace('/', DIRECTORY_SEPARATOR, $class_name);
+            echo $class_name;
             //类的后缀
-            $this->suffix = ucfirst(substr($class_name, strrpos($class_name, '\\') + 1));
+            $this->suffix = ucfirst(substr($class_name, strrpos($class_name, DIRECTORY_SEPARATOR) + 1));
+
 
             $dirpath = $apppath . $class_name;
+
+
             if (!file_exists($dirpath)) {
                 $this->output->writeln('<error>' . $class_name . ': dir path not exist.</error>');
                 exit;
             }
             // 生成类文件列表
             $files = scandir($dirpath);
+
             foreach ($files as $file) {
                 if ('.' . pathinfo($file, PATHINFO_EXTENSION) === '.php') {
                     $filename = substr($file, 0, -4);
                     if (in_array($filename, $this->ignore_files)) {
                         continue;
                     }
-                    $class_list[] = $this->namespace . '\\' . $class_name . '\\' . $filename;
+                    $class_list[] = $this->namespace . '\\' . str_replace('/', '\\', $class_name) . "\\" . $filename;
                 }
 
             }
@@ -150,13 +155,14 @@ class MakeFacade extends Make
         try {
             // 解析当前类
             $ref = new ReflectionClass($class_name);
+
             $methods = $ref->getMethods();
 
             $funs = [];
             //解决类的所有public方法
             foreach ($methods as $method) {
-                /* if ($method->class !== $class_name)
-                     continue;*/
+                if (stripos($method->class, 'think') !== false)
+                    continue;
                 // 排除特殊的方法
                 if (substr($method->name, 0, 2) == '__')
                     continue;
@@ -223,13 +229,19 @@ class MakeFacade extends Make
             $namespace = $this->getNamespace2($module_name);
             // 获取基本的类名
             $base_class_name = $this->classBaseName($class_name);
+
             // 判断目录是否存在
             $apppath = $apppath ?? $this->app->getAppPath();
             if (!empty($module_name)) {
-                $dirname = $apppath . $module_name . '\\facade\\';
+                $dirname = $apppath . $module_name . DIRECTORY_SEPARATOR . 'facade';
             } else {
-                $dirname = $apppath . 'facade\\';
+                $dirname = $apppath . 'facade';
             }
+
+
+            $dirname .= DIRECTORY_SEPARATOR;
+
+
             if (!file_exists($dirname)) {
                 if (!mkdir($dirname, 0644, true) && !is_dir($dirname)) {
                     throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirname));
@@ -351,6 +363,9 @@ class MakeFacade extends Make
     private function classBaseName($class): string
     {
         $class = is_object($class) ? get_class($class) : $class;
+
+        //echo basename(str_replace('\\', '/', $class))."\r\n";
+
         return basename(str_replace('\\', '/', $class)) . $this->suffix;
     }
 

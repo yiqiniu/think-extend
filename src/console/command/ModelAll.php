@@ -91,10 +91,11 @@ class ModelAll extends Make
         $name = trim($input->getOption('module'));
         $apppath = $this->app->getAppPath();
         if (!empty($name)) {
-            $dirname = $apppath . $name . '\\model\\';
+            $dirname = $apppath . $name . DIRECTORY_SEPARATOR . 'model';
         } else {
-            $dirname = $apppath . 'model\\';
+            $dirname = $apppath . 'model';
         }
+        $dirname .= DIRECTORY_SEPARATOR;
         if (!file_exists($dirname)) {
             if (!mkdir($dirname, 0644, true) && !is_dir($dirname)) {
                 throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirname));

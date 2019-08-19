@@ -97,6 +97,7 @@ class ValidateAll extends Make
         } else {
             $dirname = $apppath . 'validate\\';
         }
+        $dirname .= DIRECTORY_SEPARATOR;
         if (!file_exists($dirname) && !mkdir($dirname, 0644, true) && !is_dir($dirname)) {
             throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirname));
         }

@@ -244,7 +244,7 @@ if (!function_exists('api_refresh_token')) {
     '\\yiqiniu\\console\\command\\ValidateTable',
 ]);
 //添加swoole的支持
-if (extension_loaded('swoole')) {
+if (extension_loaded('swoole') && class_exists("think\\swoole\\command\\Swoole'")) {
     \think\Console::addDefaultCommands([
         '\\yiqiniu\\console\\command\\Tcpserver'
     ]);
