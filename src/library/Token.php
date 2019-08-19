@@ -27,7 +27,19 @@ class Token
      */
     public function __construct($key = '')
     {
-        $this->key = config('yqnapi.auth.token_key');
+        $this->key = empty($key) ? config('yqnapi.auth.token_key') : $key;
+    }
+
+
+    /**
+     * 检查 是否设置Token Key
+     * @throws \yiqiniu\exception\ApiException
+     */
+    private function checkKey()
+    {
+        if (empty($this->key))
+            api_exception('no set token key');
+        return true;
     }
 
     /**
@@ -48,7 +60,6 @@ class Token
                 'iss' => request()->Domain(), //签发者 可选
                 'iat' => $time, //签发时间
                 'data' => $data
-
             ];
 
             $access_token = $token;
@@ -79,17 +90,6 @@ class Token
 
 
     /**
-     * 检查 是否设置Token Key
-     * @throws \yiqiniu\exception\ApiException
-     */
-    private function checkKey()
-    {
-        if (empty($this->key))
-            api_exception('no set token key');
-        return true;
-    }
-
-    /**
      * 验证签名
      * @param $jwt jwt字符串
      * @param $app 客户端ID
@@ -104,7 +104,7 @@ class Token
             JWT::$timestamp = time();//当前时间
             $decoded = JWT::decode($jwt, $this->key, ['HS256']); //HS256方式，这里要和签发的时候对应
             if (empty($decoded->data) || (isset($decoded->data->app) && $decoded->data->app != $app)) {
-                api_exception(API_TIMEOUT, '登录修改无效,请重新登录');
+                api_exception(API_TIMEOUT, '登录信息无效,请重新登录');
             }
             return (array)$decoded->data;
         } catch (SignatureInvalidException $e) {
@@ -154,7 +154,7 @@ class Token
         } catch (ExpiredException $e) { // token过期
             api_exception(API_TIMEOUT, '登录凭证失效');
         } catch (\Exception $e) { //其他错误
-            api_exception(API_TIMEOUT, $e->getMessage());
+            api_exception($e->getMessage());
         }
     }
 

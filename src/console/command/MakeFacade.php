@@ -52,6 +52,7 @@ class MakeFacade extends Make
             ->addOption('module', '-m', Option::VALUE_REQUIRED, "指定输出的模块")
             ->addOption('dir', '-d', Option::VALUE_NONE, "是否为目录,目录时批量生成")
             ->addOption('parent', '-p', Option::VALUE_REQUIRED, "读取父类注释与生成的合并")
+            ->addOption('framework', '-f', Option::VALUE_NONE, "读取框架的类的注释")
             ->setDescription('Create a new Facade class ');
     }
 
@@ -63,6 +64,7 @@ class MakeFacade extends Make
 
         $class_name = trim($input->getArgument('name'));
         $isdir = $input->getOption('dir');
+        $is_read_framework = $input->getOption('framework');
 
 
         $this->app = App::getInstance();
@@ -133,7 +135,7 @@ class MakeFacade extends Make
         $facade_stub = file_get_contents($stubs['facade']);
 
         foreach ($class_list as $v) {
-            $this->makeFacade($v, $module_name, $facade_stub, $apppath);
+            $this->makeFacade($v, $module_name, $facade_stub, $apppath, $is_read_framework);
         }
 
 
@@ -148,7 +150,7 @@ class MakeFacade extends Make
      * @param string $apppath 应用程序路径
      * @throws \ReflectionException
      */
-    protected function makeFacade($class_name, $module_name, $facade_stub, $apppath = '')
+    protected function makeFacade($class_name, $module_name, $facade_stub, $apppath = '', $is_read_framework = false)
     {
 
         try {
@@ -160,7 +162,7 @@ class MakeFacade extends Make
             $funs = [];
             //解决类的所有public方法
             foreach ($methods as $method) {
-                if (stripos($method->class, 'think') !== false)
+                if (!$is_read_framework && stripos($method->class, 'think') !== false)
                     continue;
                 // 排除特殊的方法
                 if (substr($method->name, 0, 2) == '__')
@@ -362,6 +364,7 @@ class MakeFacade extends Make
     private function classBaseName($class): string
     {
         $class = is_object($class) ? get_class($class) : $class;
+
         return basename(str_replace('\\', '/', $class)) . $this->suffix;
     }
 
