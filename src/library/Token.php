@@ -20,6 +20,7 @@ use yiqiniu\exception\ApiException;
 class Token
 {
     private $key = '';
+    private $expire = 0;
 
     /**
      * Token constructor.
@@ -27,7 +28,9 @@ class Token
      */
     public function __construct($key = '')
     {
-        $this->key = empty($key) ? config('yqnapi.auth.token_key') : $key;
+        $config = config('yqnapi.auth');
+        $this->key = empty($key) ? $config['token_key'] : $key;
+        $this->expire = $config['expire'] > 0 ? $config['expire'] : 0;
     }
 
 
@@ -44,11 +47,10 @@ class Token
 
     /**
      * @param $data 加密的数据
-     * @param int $is_exp 是否加入有效时间
      * @return array
      * @throws ApiException
      */
-    public function getToken($data, $is_exp = 1)
+    public function getToken($data)
     {
         try {
             $this->checkKey();
@@ -64,16 +66,14 @@ class Token
 
             $access_token = $token;
             $access_token['scopes'] = 'role_access'; //token标识，请求接口的token
-            if ($is_exp) {
-                $access_token['exp'] = $time + TOKEN_AUTH_TIME; //access_token过期时间,这里设置6个小时
+            if ($this->expire > 0) {
+                $access_token['exp'] = $time + $this->expire; //access_token过期时间,这里设置6个小时
+                $refresh_token['exp'] = $time + REFRESH_TOKEN_TIMEOUT; //access_token过期时间,这里设置30天
             }
 
 
             $refresh_token = $token;
             $refresh_token['scopes'] = 'role_refresh'; //token标识，刷新access_token
-            if ($is_exp) {
-                $refresh_token['exp'] = $time + REFRESH_TOKEN_TIMEOUT; //access_token过期时间,这里设置30天
-            }
 
 
             return [
