@@ -42,7 +42,7 @@ class AliyunSms
      * @return bool
      * @throws Exception
      */
-    public function sendVerityCode($mobile, $code)
+    public function sendVerityCode($mobile, $code, $params = [])
     {
 
 
@@ -52,7 +52,7 @@ class AliyunSms
             api_exception(API_VAILD_EXCEPTION, '获取频繁,请稍候再试');
         }
         $veritycode = str_pad(rand(100000, 999999), 6, '0', STR_PAD_BOTH);
-        if ($this->sendSms($mobile, $veritycode, $code)) {
+        if ($this->sendSms($mobile, $veritycode, $code, $params)) {
             return true;
         } else {
             return false;
@@ -69,7 +69,7 @@ class AliyunSms
      * @return bool
      * @throws Exception
      */
-    public function sendSms($mobile, $veritycode, $codeName = null)
+    public function sendSms($mobile, $veritycode, $codeName = null, $param = [])
     {
         try {
             if (empty($codeName)) {
@@ -86,7 +86,7 @@ class AliyunSms
             }
 
             $send = new Send($config);
-            $sendret = $send->sendSms($mobile, ['code' => $veritycode], $config['signname'], $codeName);
+            $sendret = $send->sendSms($mobile, array_merge(['code' => $veritycode], $param), $config['signname'], $codeName);
             if ($sendret) {
                 $verityinfo['time'] = time();
                 $verityinfo['code'] = $veritycode;
