@@ -234,18 +234,3 @@ if (!function_exists('api_refresh_token')) {
     }
 }
 
-// 注册命令行指令
-\think\Console::addDefaultCommands([
-    '\\yiqiniu\\console\\command\\MakeFacade',
-    'make:model_all' => '\\yiqiniu\\console\\command\\ModelAll',
-    'make:validate_all' => '\\yiqiniu\\console\\command\\ValidateAll',
-    '\\yiqiniu\\console\\command\\Compress',
-    '\\yiqiniu\\console\\command\\UuidKey',
-    '\\yiqiniu\\console\\command\\ValidateTable',
-]);
-//添加swoole的支持
-if (extension_loaded('swoole') && class_exists("think\\swoole\\command\\Swoole'")) {
-    \think\Console::addDefaultCommands([
-        '\\yiqiniu\\console\\command\\Tcpserver'
-    ]);
-}
