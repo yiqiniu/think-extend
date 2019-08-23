@@ -51,6 +51,7 @@ use yiqiniu\db\Query;
  * @method mixed query(string $sql, array $bind = [], boolean $master = false, bool $pdo = false) static SQL查询
  * @method integer execute(string $sql, array $bind = [], boolean $fetch = false, boolean $getLastInsID = false, string $sequence = null) static SQL执行
  * @method Paginator paginate(integer $listRows = 15, mixed $simple = null, array $config = []) static 分页查询
+ * @method Paginator paginateArray(integer $listRows = 15, mixed $simple = null, array $config = []) static 分页查询
  * @method mixed transaction(callable $callback) static 执行数据库事务
  * @method void startTrans() static 启动事务
  * @method void commit() static 用于非自动提交状态下面的查询提交
