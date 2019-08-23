@@ -4,10 +4,12 @@
 namespace yiqiniu\db;
 
 
+use think\Container;
 use think\db\exception\DataNotFoundException;
 use think\db\exception\ModelNotFoundException;
 use think\exception\DbException;
 use think\Model;
+use think\Paginator;
 
 
 /**
@@ -91,6 +93,71 @@ class Query extends \think\db\Query
             $this->rollback();
             throw $e;
         }
+    }
+
+    /**
+     * 分页查询
+     * @access public
+     * @param int|array $listRows 每页数量 数组表示配置参数
+     * @param int|bool $simple 是否简洁模式或者总记录数
+     * @param array $config 配置参数
+     *                            page:当前页,
+     *                            path:url路径,
+     *                            query:url额外参数,
+     *                            fragment:url锚点,
+     *                            var_page:分页变量,
+     *                            list_rows:每页数量
+     *                            type:分页类名
+     * @return \think\Paginator
+     * @throws DbException
+     */
+    public function paginateArray($listRows = null, $simple = false, $config = [])
+    {
+        if (is_int($simple)) {
+            $total = $simple;
+            $simple = false;
+        }
+
+        $paginate = Container::get('config')->pull('paginate');
+
+        if (is_array($listRows)) {
+            $config = array_merge($paginate, $listRows);
+            $listRows = $config['list_rows'];
+        } else {
+            $config = array_merge($paginate, $config);
+            $listRows = $listRows ?: $config['list_rows'];
+        }
+
+        /** @var Paginator $class */
+        $class = false !== strpos($config['type'], '\\') ? $config['type'] : '\\think\\paginator\\driver\\' . ucwords($config['type']);
+        $page = isset($config['page']) ? (int)$config['page'] : call_user_func([
+            $class,
+            'getCurrentPage',
+        ], $config['var_page']);
+
+        $page = $page < 1 ? 1 : $page;
+
+        $config['path'] = isset($config['path']) ? $config['path'] : call_user_func([$class, 'getCurrentPath']);
+
+        if (!isset($total) && !$simple) {
+            $options = $this->getOptions();
+
+            unset($this->options['order'], $this->options['limit'], $this->options['page'], $this->options['field']);
+
+            $bind = $this->bind;
+            $total = $this->count();
+            $results = $this->options($options)->bind($bind)->page($page, $listRows)->selectArray();
+        } elseif ($simple) {
+            $results = $this->limit(($page - 1) * $listRows, $listRows + 1)->selectArray();
+            $total = null;
+        } else {
+            $results = $this->page($page, $listRows)->selectArray();
+        }
+
+        $this->removeOption('limit');
+        $this->removeOption('page');
+
+        return $class::make($results, $listRows, $page, $total, $simple, $config);
     }
 }
 
