@@ -3,6 +3,7 @@
 const API_SUCCESS = 200;
 // 数据验证失败
 const API_VAILD_EXCEPTION = 400;
+const API_ERROR = 400;
 // 登录超时
 const API_TIMEOUT = 401;
 // 服务器处理异常 / 客户端自定义处理
