@@ -28,6 +28,11 @@ class AuthMiddleware
         $header = $request->header();
         //加入对APP的处理
         $request->app = $header['app'] ?? '';
+
+        // 直接在路由中配置的参数,无需参加认证
+        if ($controller == '' && $action == '') {
+            return $next($request);
+        }
         // 不需要认证,直接下一个操作
         if (in_array($module . '/' . $controller . '/' . $action, $no_auth['action']) ||
             in_array($module . '/' . $controller, $no_auth['controller'])) {

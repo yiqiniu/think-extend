@@ -297,7 +297,8 @@ class Date
         static $chunks = array(array(31536000, '年'), array(2592000, '个月'), array(604800, '周'), array(86400, '天'), array(3600, '小时'), array(60, '分钟'), array(1, '秒'));
         $count = 0;
         $since = '';
-        for ($i = 0; $i < count($chunks); $i++) {
+        $iMax = count($chunks);
+        for ($i = 0; $i < $iMax; $i++) {
             if ($diff >= $chunks[$i][0]) {
                 $num = floor($diff / $chunks[$i][0]);
                 $since .= sprintf('%d' . $chunks[$i][1], $num);
@@ -597,21 +598,22 @@ class Date
 
     /**
      * 日期加减操作
-     * @param string $date      要处理的日期
-     * @param int $day    >  加天  <0 减天
-     * @param string $format  要返回的格式  Y-m-d
+     * @param string $date 要处理的日期
+     * @param int $day >  加天  <0 减天
+     * @param string $format 要返回的格式  Y-m-d
      * @return string
      */
-    public function dateAdd($date,$day=0,$format='Y-m-d'){
-        if(!empty($date) && $day!=0){
-            $str = $day>0?'+'.$day:$day;
-            $time = strtotime($str.' day',strtotime($date));
-        }elseif(empty($date)) {
+    public function dateAdd($date, $day = 0, $format = 'Y-m-d')
+    {
+        if (!empty($date) && $day != 0) {
+            $str = $day > 0 ? '+' . $day : $day;
+            $time = strtotime($str . ' day', strtotime($date));
+        } elseif (empty($date)) {
             $time = strtotime($date);
-        }else{
-            $time= time();
+        } else {
+            $time = time();
         }
-        return date($format,$time);
+        return date($format, $time);
 
     }
 
