@@ -24,6 +24,11 @@ class AuthMiddleware
 
         $controller = strtolower($request->controller());
         $action = strtolower($request->action());
+
+        // 直接在路由中配置的参数,无需参加认证
+        if ($controller == '' && $action == '') {
+            return $next($request);
+        }
         // 不需要认证,直接下一个操作
         if (in_array($controller . '/' . $action, $no_auth['action']) ||
             in_array($controller, $no_auth['controller'])) {
