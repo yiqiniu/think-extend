@@ -1,6 +1,6 @@
 <?php
 
-namespace yiqiniu\middleware;
+namespace app\api\middleware;
 
 
 use think\Exception;
@@ -24,19 +24,14 @@ class AuthMiddleware
 
         $controller = strtolower($request->controller());
         $action = strtolower($request->action());
-
-        // 直接在路由中配置的参数,无需参加认证
-        if ($controller == '' && $action == '') {
-            return $next($request);
-        }
-        // 不需要认证,直接下一个操作
-        if (in_array($controller . '/' . $action, $no_auth['action']) ||
-            in_array($controller, $no_auth['controller'])) {
-            return $next($request);
-
-        }
-        //获取用户的认证信息
         $header = $request->header();
+        //加入对APP的处理
+        $request->app = $header['app'] ?? '';
+
+
+
+
+        //获取用户的认证信息
         if (isset($header['Authorization'])) {
             $auth = $header['Authorization'];
         } elseif (isset($header['authorization'])) {
@@ -45,14 +40,29 @@ class AuthMiddleware
             $auth = '';
         }
 
-        // 不存在,返回错误
-        if (empty($auth)) {
-            return api_result(API_TIMEOUT, '登录超时,请重新登录');
+        // 不需要认证,直接下一个操作
+        // 1.直接在路由中配置的参数,无需参加认证
+        // 2.操作不需要认证的
+        // 3.控制器不需要认证的
+        if ( ($controller == '' && $action == '') ||
+            in_array($controller . '/' . $action, $no_auth['action']) ||
+            in_array($controller, $no_auth['controller'])) {
+            if (!empty($auth)) {
+                $this->parseInfo($auth, $request, $header, true);
+            }
+        } else {
+            // 不存在,返回错误
+            if (empty($auth)) {
+                return api_result(API_TIMEOUT, '登录超时,请重新登录');
+            }
+            // 解析并到设置request中
+            if (!$this->parseInfo($auth, $request, $header)) {
+                return api_result(API_TIMEOUT, '非法的用户请求');
+            }
+
         }
-        // 解析并到设置request中
-        if (!$this->parseInfo($auth, $request, $header)) {
-            return api_result(API_TIMEOUT, '非法的用户请求');
-        }
+
+
         return $next($request);
     }
 
@@ -63,15 +73,18 @@ class AuthMiddleware
      * @return bool
      * @throws \Exception
      */
-    protected function parseInfo($authinfo, $request, $header)
+    protected function parseInfo($authinfo, $request, $header, $noauth = false)
     {
         try {
             $request->tokenBody = Token::verifyToken($authinfo, $header['app'] ?? '');
             return true;
-
         } catch (Exception $e) {
+            if ($noauth) {
+                return true;
+            } else {
+                return api_result($e);
+            }
 
-            return api_result($e);
         }
     }
 }
