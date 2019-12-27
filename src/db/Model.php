@@ -19,7 +19,9 @@ class Model extends \think\Model
             $r_arr = ['hasmore' => $page_list->hasMore, 'list' => $list];
         } else {
             $r_arr = ['total' => $page_list->total, 'current_page' => $page_list->currentPage,
-                'last_page' => $page_list->lastPage, 'list_rows' => $page_list->listRows, 'render' => $page_list->render(), 'list' => $list];
+                'last_page' => $page_list->lastPage, 'list_rows' => $page_list->listRows,
+                'render' => $page_list->render(), 'list' => $list
+            ];
         }
         return $r_arr;
     }
