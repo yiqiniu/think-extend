@@ -1,6 +1,6 @@
 <?php
 
-namespace app\api\middleware;
+namespace yiqiniu\middleware;
 
 
 use think\Exception;
