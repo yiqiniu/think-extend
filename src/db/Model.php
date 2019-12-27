@@ -16,7 +16,7 @@ class Model extends \think\Model
     {
         $list = is_null($list) ? $page_list->items() : $list;
         if ($this->page_simple) {
-            $r_arr = ['hasmore' => $page_list->hasPage, 'list' => $list];
+            $r_arr = ['hasmore' => $page_list->hasMore, 'list' => $list];
         } else {
             $r_arr = ['total' => $page_list->total, 'current_page' => $page_list->currentPage,
                 'last_page' => $page_list->lastPage, 'list_rows' => $page_list->listRows, 'render' => $page_list->render(), 'list' => $list];
