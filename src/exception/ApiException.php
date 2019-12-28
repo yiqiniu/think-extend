@@ -13,18 +13,20 @@ namespace yiqiniu\exception;
 
 
 
+use think\Exception;
+
 /**
  * Database相关异常处理类
  */
-class ApiException extends \think\Exception
+class ApiException extends Exception
 {
 
     /**
      * ApiException constructor.
      * @access public
-     * @param  string $message
-     * @param  int $code
-     * @param  array $data
+     * @param string $message
+     * @param int $code
+     * @param array $data
      */
     public function __construct($message, $code = 400, $data = [])
     {

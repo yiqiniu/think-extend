@@ -3,6 +3,7 @@
 use think\exception\HttpResponseException;
 use yiqiniu\facade\Logger;
 use yiqiniu\facade\Token;
+use yiqiniu\library\Http;
 
 if (!function_exists('api_exception')) {
     /**
@@ -63,7 +64,7 @@ if (!function_exists('api_result')) {
             $msg = $code;
             $code = API_SUCCESS;
         }
-        
+
         $result = [
             'code' => $code,
             'msg' => $msg != '' ? $msg : (config('status.')[$code]),
@@ -169,4 +170,33 @@ if (!function_exists('writelog')) {
         Logger::log($content, $append);
     }
 
+}
+
+
+/**
+ * 通过百度接口查询物流信息
+ * @param string $number 物流单号
+ * @return array|mixed
+ */
+function express_query($number)
+{
+    try {
+        list($microtime, $clientIp, $list) = [time(), request()->ip(), []];
+        $options = ['header' => ['Host' => 'www.kuaidi100.com', 'CLIENT-IP' => $clientIp, 'X-FORWARDED-FOR' => $clientIp], 'cookie_file' => runtime_path() . 'cookie'];
+        $location = "https://sp0.baidu.com/9_Q4sjW91Qh3otqbppnN2DJv/pae/channel/data/asyncqury?cb=callback&appid=4001&&nu={$number}&vcode=&token=&_={$microtime}";
+        $result = json_decode(str_replace('/**/callback(', '', trim(Http::get($location, [], $options), ')')), true);
+        if (empty($result['data']['info']['context'])) { // 第一次可能失败，这里尝试第二次查询
+            $result = json_decode(str_replace('/**/callback(', '', trim(Http::get($location, [], $options), ')')), true);
+            if (empty($result['data']['info']['context'])) {
+                return $list;
+            }
+        }
+        foreach ($result['data']['info']['context'] as $vo) $list[] = [
+            'time' => date('Y-m-d H:i:s', $vo['time']), 'ftime' => date('Y-m-d H:i:s', $vo['time']), 'context' => $vo['desc'],
+        ];
+        return $list;
+
+    } catch (Exception $exception) {
+        return [];
+    }
 }
