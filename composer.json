@@ -10,7 +10,8 @@
         }
     ],
     "require": {
-        "topthink/framework": "^6.0.0"
+        "topthink/framework": "^6.0.0",
+        "ext-json": "*"
     },
     "autoload": {
         "psr-4": {
