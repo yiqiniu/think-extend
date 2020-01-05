@@ -165,9 +165,9 @@ if (!function_exists('writelog')) {
      *
      *
      */
-    function writelog($content, $append = true)
+    function writelog($content, $append = true, $prefix = '',$dir='logs')
     {
-        Logger::log($content, $append);
+        Logger::log($content, $append, $prefix,$dir);
     }
 
 }

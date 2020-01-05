@@ -52,7 +52,7 @@ class Logger
         } else {
             $logdata['code'] = $e->getCode();
         }
-        $logdata['request_uri'] = $_SERVER['REQUEST_URI']??'';
+        $logdata['request_uri'] = $_SERVER['REQUEST_URI'] ?? '';
         $logdata['post'] = $_POST;
         $logdata['get'] = $_GET;
         $logdata['message'] = $e->getMessage();
@@ -103,14 +103,23 @@ class Logger
 
     /**
      *  记录日志到文件中
-     * @param $content  string   要记录的内容
+     * @param $content string  要记录的内容
+     * @param $append  bool     内容是否追加
+     * @param $prefix  string   文件名前缀
+     * @param string $dir
      */
-    public function log($content, $append = true)
+    public function log($content, $append = true, $prefix = '', $dir = 'logs')
     {
-        $logfile = $this->runtime_path . '/logs/' . date('Ym') . '/' . date('Ymd') . '.log';
-
+        if (is_string($append)) {
+            if (!empty($prefix)) {
+                $dir = $prefix;
+            }
+            $prefix = $append;
+            $append = true;
+        }
+        $dir = empty($dir) ? 'logs' : $dir;
+        $logfile = $this->runtime_path . '/' . $dir . '/' . date('Ym') . '/' . $prefix . date('Ymd') . '.log';
         $this->writeLogger($logfile, $content, $append);
-
     }
 
 }
