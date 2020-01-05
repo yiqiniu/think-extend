@@ -53,6 +53,8 @@ class Logger
             $logdata['code'] = $e->getCode();
         }
         $logdata['request_uri'] = $_SERVER['REQUEST_URI'] ?? '';
+
+        $controller = request()->controller(true);
         $logdata['post'] = $_POST;
         $logdata['get'] = $_GET;
         $logdata['message'] = $e->getMessage();
@@ -61,10 +63,9 @@ class Logger
         $logdata['trace'] = $e->getTraceAsString();
 
 
-        $exception_log = $this->runtime_path . '/exception/' . date('Ym') . '/' . date('Ymd') . '.log';
+        $exception_log = $this->runtime_path . '/exception/' . date('Ym') . '/' . ($controller === '' ? '' : $controller . '_') . date('Ymd') . '.log';
 
-
-        $this->writeLogger($exception_log, $logdata, true);
+        $this->writeLogger($exception_log, print_r($logdata, true));
         return true;
 
     }
@@ -83,7 +84,7 @@ class Logger
             file_exists($dirname) || mkdir($dirname, 0755, true);
 
             if (!is_string($strdata)) {
-                $strdata = is_array($strdata) ? json_encode($strdata,JSON_UNESCAPED_UNICODE) : print_r($strdata, true);
+                $strdata = is_array($strdata) ? json_encode($strdata, JSON_UNESCAPED_UNICODE) : print_r($strdata, true);
             }
             $str = "[" . date("Y-m-d H:i:s") . "]" . $strdata . "\r\n";
             if ($append)
@@ -118,7 +119,7 @@ class Logger
             $append = true;
         }
         $dir = empty($dir) ? 'logs' : $dir;
-        $logfile = $this->runtime_path . '/' . $dir . '/' . date('Ym') . '/' . $prefix . date('Ymd') . '.log';
+        $logfile = $this->runtime_path . '/' . $dir . '/' . date('Ym') . '/' . ($prefix !== '' ? $prefix . '_' : '') . date('Ymd') . '.log';
         $this->writeLogger($logfile, $content, $append);
     }
 
