@@ -83,7 +83,7 @@ class Logger
             file_exists($dirname) || mkdir($dirname, 0755, true);
 
             if (!is_string($strdata)) {
-                $strdata = print_r($strdata, true);
+                $strdata = is_array($strdata) ? json_encode($strdata,JSON_UNESCAPED_UNICODE) : print_r($strdata, true);
             }
             $str = "[" . date("Y-m-d H:i:s") . "]" . $strdata . "\r\n";
             if ($append)
