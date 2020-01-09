@@ -18,7 +18,6 @@ use think\Paginator;
 class Query extends \think\db\Query
 {
 
-
     /**
      * 查找记录 返回数组类型
      * @access public
@@ -35,7 +34,26 @@ class Query extends \think\db\Query
             $this->parsePkWhere($data);
         }
 
-        return $this->connection->select($this);
+        $resultSet = $this->connection->select($this);
+        if (empty($resultSet)) {
+            return [];
+        }
+        // 数据列表读取后的处理
+        if (!empty($this->model)) {
+
+            foreach ($resultSet as $key => &$result) {
+                // 数据转换为模型对象
+                $this->resultToModel($result, $this->options, true, []);
+
+                if (!empty($result->relation)) {
+                    $result = array_merge($result->data, $result->relation);
+                } else {
+                    $result = $result->getOrigin();
+                }
+            }
+        }
+
+        return $resultSet;
     }
 
     /**
@@ -54,7 +72,19 @@ class Query extends \think\db\Query
             $this->parsePkWhere($data);
         }
 
-        return $this->connection->find($this);
+        $resultSet = $this->connection->find($this);
+        if (empty($resultSet)) {
+            return [];
+        }
+        // 数据处理
+
+        if (!empty($this->model)) {
+            // 返回模型对象
+            $this->resultToModel($resultSet, $this->options, true);
+            return $resultSet->getOrigin();
+        }
+        return $resultSet;
+
 
     }
 
@@ -63,10 +93,10 @@ class Query extends \think\db\Query
      * @access public
      * @param int|array $listRows 每页数量 数组表示配置参数
      * @param int|bool $simple 是否简洁模式或者总记录数
-     * @return Array
+     * @return Paginator
      * @throws Exception
      */
-    public function paginateArray($listRows = null, $simple = false): Array
+    public function paginateArray($listRows = null, $simple = false): Paginator
     {
         if (is_int($simple)) {
             $total = $simple;
