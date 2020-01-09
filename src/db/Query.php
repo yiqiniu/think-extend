@@ -4,9 +4,7 @@
 namespace yiqiniu\db;
 
 
-use think\db\exception\DataNotFoundException;
 use think\db\exception\DbException as Exception;
-use think\db\exception\ModelNotFoundException;
 use think\exception\DbException;
 use think\Model;
 use think\Paginator;
@@ -23,9 +21,7 @@ class Query extends \think\db\Query
      * @access public
      * @param mixed $data 数据
      * @return array
-     * @throws DataNotFoundException
-     * @throws ModelNotFoundException
-     * @throws DbException
+     * @throws Exception
      */
     public function selectArray($data = null): array
     {
@@ -46,7 +42,7 @@ class Query extends \think\db\Query
                 $this->resultToModel($result, $this->options, true, []);
 
                 if (!empty($result->relation)) {
-                    $result = array_merge($result->data, $result->relation);
+                    $result = array_merge($result->getOrigin(), $result->relation->getOrigin());
                 } else {
                     $result = $result->getOrigin();
                 }
@@ -61,9 +57,7 @@ class Query extends \think\db\Query
      * @access public
      * @param mixed $data 查询数据
      * @return array|Model|null
-     * @throws DbException
-     * @throws ModelNotFoundException
-     * @throws DataNotFoundException
+     * @throws Exception
      */
     public function findArray($data = null)
     {
@@ -79,9 +73,15 @@ class Query extends \think\db\Query
         // 数据处理
 
         if (!empty($this->model)) {
-            // 返回模型对象
             $this->resultToModel($resultSet, $this->options, true);
-            return $resultSet->getOrigin();
+            // 返回模型对象
+            if (!empty($resultSet->relation)) {
+                return array_merge($resultSet->getOrigin(), $resultSet->relation->getOrigin());
+            } else {
+                return $resultSet->getOrigin();
+            }
+
+
         }
         return $resultSet;
 
