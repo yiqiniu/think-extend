@@ -8,6 +8,7 @@ use think\db\exception\DbException as Exception;
 use think\exception\DbException;
 use think\Model;
 use think\Paginator;
+use think\View;
 
 
 /**
@@ -15,6 +16,124 @@ use think\Paginator;
  */
 class Query extends \think\db\Query
 {
+
+
+    /**
+     * 查询数据转换为模型数据集对象
+     * @access protected
+     * @param array $resultSet 数据集
+     * @return void
+     */
+    protected function resultSetToModelArray(array &$resultSet): void
+    {
+
+        // 检查动态获取器
+        if (!empty($this->options['with_attr'])) {
+            foreach ($this->options['with_attr'] as $name => $val) {
+                if (strpos($name, '.')) {
+                    [$relation, $field] = explode('.', $name);
+
+                    $withRelationAttr[$relation][$field] = $val;
+                    unset($this->options['with_attr'][$name]);
+                }
+            }
+        }
+
+        $withRelationAttr = $withRelationAttr ?? [];
+
+        foreach ($resultSet as $key => &$result) {
+            // 数据转换为模型对象
+            $this->resultToModel($result, $this->options, true, $withRelationAttr);
+        }
+
+        if (!empty($this->options['with'])) {
+            // 预载入
+            $result->eagerlyResultSet($resultSet, $this->options['with'], $withRelationAttr, false, $this->options['with_cache'] ?? false);
+        }
+
+        if (!empty($this->options['with_join'])) {
+            // 预载入
+            $result->eagerlyResultSet($resultSet, $this->options['with_join'], $withRelationAttr, true, $this->options['with_cache'] ?? false);
+        }
+        foreach ($resultSet as $key => &$result) {
+            // 数据转换为模型对象
+            //$this->resultToModel($result, $this->options, true, $withRelationAttr);
+            $result = $result->getData();
+        }
+
+    }
+
+
+    /**
+     * 查询数据转换为模型对象
+     * @access protected
+     * @param array $result 查询数据
+     * @param array $options 查询参数
+     * @param bool $resultSet 是否为数据集查询
+     * @param array $withRelationAttr 关联字段获取器
+     * @return void
+     */
+    protected function resultToArray(array &$result, array $options = [], bool $resultSet = false, array $withRelationAttr = []): void
+    {
+        // 动态获取器
+        if (!empty($options['with_attr']) && empty($withRelationAttr)) {
+            foreach ($options['with_attr'] as $name => $val) {
+                if (strpos($name, '.')) {
+                    [$relation, $field] = explode('.', $name);
+
+                    $withRelationAttr[$relation][$field] = $val;
+                    unset($options['with_attr'][$name]);
+                }
+            }
+        }
+
+        // JSON 数据处理
+        if (!empty($options['json'])) {
+            $this->jsonResult($result, $options['json'], $options['json_assoc'], $withRelationAttr);
+        }
+
+        $result = $this->model
+            ->newInstance($result, $resultSet ? null : $this->getModelUpdateCondition($options));
+
+        // 动态获取器
+        if (!empty($options['with_attr'])) {
+            $result->withAttribute($options['with_attr']);
+        }
+
+        // 输出属性控制
+        if (!empty($options['visible'])) {
+            $result->visible($options['visible']);
+        } elseif (!empty($options['hidden'])) {
+            $result->hidden($options['hidden']);
+        }
+
+        if (!empty($options['append'])) {
+            $result->append($options['append']);
+        }
+
+        // 关联查询
+        if (!empty($options['relation'])) {
+            $result->relationQuery($options['relation'], $withRelationAttr);
+        }
+
+        // 预载入查询
+        if (!$resultSet && !empty($options['with'])) {
+            $result->eagerlyResult($result, $options['with'], $withRelationAttr, false, $options['with_cache'] ?? false);
+        }
+
+        // JOIN预载入查询
+        if (!$resultSet && !empty($options['with_join'])) {
+            $result->eagerlyResult($result, $options['with_join'], $withRelationAttr, true, $options['with_cache'] ?? false);
+        }
+
+        // 关联统计
+        if (!empty($options['with_count'])) {
+            foreach ($options['with_count'] as $val) {
+                $result->relationCount($this, (array)$val[0], $val[1], $val[2], false);
+            }
+        }
+        $result = $result->getData();
+    }
 
     /**
      * 查找记录 返回数组类型
@@ -30,6 +149,7 @@ class Query extends \think\db\Query
             $this->parsePkWhere($data);
         }
 
+
         $resultSet = $this->connection->select($this);
         if (empty($resultSet)) {
             return [];
@@ -37,16 +157,7 @@ class Query extends \think\db\Query
         // 数据列表读取后的处理
         if (!empty($this->model)) {
 
-            foreach ($resultSet as $key => &$result) {
-                // 数据转换为模型对象
-                $this->resultToModel($result, $this->options, true, []);
-
-                if (!empty($result->relation)) {
-                    $result = array_merge($result->getOrigin(), $result->relation->getOrigin());
-                } else {
-                    $result = $result->getOrigin();
-                }
-            }
+            $this->resultSetToModelArray($resultSet);
         }
 
         return $resultSet;
@@ -73,14 +184,9 @@ class Query extends \think\db\Query
         // 数据处理
 
         if (!empty($this->model)) {
-            $this->resultToModel($resultSet, $this->options, true);
-            // 返回模型对象
-            if (!empty($resultSet->relation)) {
-                return array_merge($resultSet->getOrigin(), $resultSet->relation->getOrigin());
-            } else {
-                return $resultSet->getOrigin();
-            }
 
+            // 返回模型对象
+            $this->resultToArray($resultSet, $this->options);
 
         }
         return $resultSet;

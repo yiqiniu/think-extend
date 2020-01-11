@@ -12,6 +12,8 @@ namespace yiqiniu\db;
 class Model extends \think\Model
 {
 
+    protected $jsonAssoc = true;
+
     public function return_page($page_list, $list = null)
     {
         $list = is_null($list) ? $page_list->items() : $list;
