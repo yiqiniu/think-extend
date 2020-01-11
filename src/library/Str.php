@@ -42,6 +42,22 @@ class Str
 
 
     /**
+     * 将字符串转换为utf-8
+     * @param $string
+     * @return string
+     */
+    public static function convert_utf8($string)
+    {
+        if (strlen(utf8_decode($string)) == strlen($string)) {
+            // $string is not UTF-8
+            return iconv('GBK', 'UTF-8', $string);
+        } else {
+            // already UTF-8
+            return $string;
+        }
+    }
+
+    /**
      * 检查字符串是否是UTF8编码
      * @param string $string 字符串
      * @return Boolean
@@ -192,10 +208,10 @@ class Str
      * 简单对称加密算法之加密
      * @param String $string 需要加密的字串
      * @param String $skey 加密EKY
+     * @return String
      * @author Anyon Zou <zoujingli@qq.com>
      * @date 2013-08-13 19:30
      * @update 2014-10-10 10:10
-     * @return String
      */
     public static function base64_en($string = '', $skey = 'yiqiniu')
     {
@@ -210,10 +226,10 @@ class Str
      * 简单对称加密算法之解密
      * @param String $string 需要解密的字串
      * @param String $skey 解密KEY
+     * @return String
      * @author Anyon Zou <zoujingli@qq.com>
      * @date 2013-08-13 19:30
      * @update 2014-10-10 10:10
-     * @return String
      */
     public static function base64_de($string = '', $skey = 'yiqiniu')
     {

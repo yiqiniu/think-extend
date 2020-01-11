@@ -241,11 +241,23 @@ class Date
      * 验证日期数据是否有效
      * @access public
      * @param mixed $date 日期数据
+     * @param array $formats
      * @return string
      */
-    public function valid($date)
+    public function valid($date, $formats = ['Y-m-d', 'Y/m/d'])
     {
+        $unixTime = strtotime($date);
+        if (!$unixTime) { //strtotime转换不对，日期格式显然不对。
+            return false;
+        }
+        //校验日期的有效性，只要满足其中一个格式就OK
+        foreach ($formats as $format) {
+            if (date($format, $unixTime) == $date) {
+                return true;
+            }
+        }
 
+        return false;
     }
 
     /**
@@ -259,7 +271,7 @@ class Date
         if (empty($year)) {
             $year = $this->year;
         }
-        return ((($year % 4) == 0) && (($year % 100) != 0) || (($year % 400) == 0));
+        return (((($year % 4) == 0) && (($year % 100) != 0)) || (($year % 400) == 0));
     }
 
     /**
@@ -297,7 +309,7 @@ class Date
         static $chunks = array(array(31536000, '年'), array(2592000, '个月'), array(604800, '周'), array(86400, '天'), array(3600, '小时'), array(60, '分钟'), array(1, '秒'));
         $count = 0;
         $since = '';
-        for ($i = 0; $i < count($chunks); $i++) {
+        for ($i = 0, $iMax = count($chunks); $i < $iMax; $i++) {
             if ($diff >= $chunks[$i][0]) {
                 $num = floor($diff / $chunks[$i][0]);
                 $since .= sprintf('%d' . $chunks[$i][1], $num);
@@ -511,7 +523,7 @@ class Date
      */
     public function numberToCh($number)
     {
-        $number = intval($number);
+        $number = (int)$number;
         $array = array('一', '二', '三', '四', '五', '六', '七', '八', '九', '十');
         $str = '';
         if ($number == 0) {
@@ -597,22 +609,33 @@ class Date
 
     /**
      * 日期加减操作
-     * @param string $date      要处理的日期
-     * @param int $day    >  加天  <0 减天
-     * @param string $format  要返回的格式  Y-m-d
+     * @param string $date 要处理的日期
+     * @param int $day >  加天  <0 减天
+     * @param string $format 要返回的格式  Y-m-d
      * @return string
      */
-    public function dateAdd($date,$day=0,$format='Y-m-d'){
-        if(!empty($date) && $day!=0){
-            $str = $day>0?'+'.$day:$day;
-            $time = strtotime($str.' day',strtotime($date));
-        }elseif(empty($date)) {
+    public function dateAdd($date, $day = 0, $format = 'Y-m-d')
+    {
+        if (!empty($date) && $day != 0) {
+            $str = $day > 0 ? '+' . $day : $day;
+            $time = strtotime($str . ' day', strtotime($date));
+        } elseif (empty($date)) {
             $time = strtotime($date);
-        }else{
-            $time= time();
+        } else {
+            $time = time();
         }
-        return date($format,$time);
+        return date($format, $time);
 
+    }
+
+    /**
+     * 返回当前的13位时间戳
+     * @return float
+     */
+    public function milliSecond()
+    {
+        list($s1, $s2) = explode(' ', microtime());
+        return sprintf('%.0f', ((float)$s1 + (float)$s2) * 1000);
     }
 
     public function __toString()

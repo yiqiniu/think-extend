@@ -10,7 +10,7 @@ use think\Facade;
  * @method mixed parse( $date) static     日期分析
  * @method mixed set( $date) static     日期参数设置
  * @method mixed format($type = 0) static 日期格式化
- * @method mixed valid( $date) static     验证日期数据是否有效
+ * @method mixed valid( $date,$format=[]) static     验证日期数据是否有效
  * @method mixed isLeapYear( $year) static     是否为闰年
  * @method mixed between( $sdate, $edate) static     计算日期差
  * @method mixed Diffc( $time, $precision) static     人性化的计算日期差
@@ -28,6 +28,7 @@ use think\Facade;
  * @method mixed yearToCh( $yearStr, $flag) static     年份数字转中文
  * @method mixed magicInfo( $type) static      判断日期 所属 干支 生肖 星座
  * @method mixed dateAdd( $date, $day, $format = 'Y-m-d') static     日期加减操作
+ * @method mixed milliSecond() static     返回13位的时间戳
  */
 class Date extends Facade
 {
