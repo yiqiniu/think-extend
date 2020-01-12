@@ -49,15 +49,33 @@ class Http
     }
 
     /**
+     * 以request payload数据进行提交
+     * @param $url
+     * @param array $data
+     * @return bool|string
+     */
+    public static function payload($url, $data = [])
+    {
+        $options['headers'] = ['Content-Type: application/json'];
+        $options['data'] = $data;
+        return self::request('post', $url, $options, true);
+    }
+
+
+    /**
      * CURL模拟网络请求
      * @param string $method 请求方法
      * @param string $url 请求方法
      * @param array $options 请求参数[headers,data]
+     * @param bool $pyload
      * @return boolean|string
      */
-    public static function request($method, $url, $options = [])
+    public static function request($method, $url, $options = [], $pyload = false)
     {
         $curl = curl_init();
+        if ($method === 'get' && $pyload = true) {
+            $pyload = false;
+        }
         // GET 参数设置
         if (!empty($options['query'])) {
             $url .= (stripos($url, '?') !== false ? '&' : '?') . http_build_query($options['query']);
@@ -79,7 +97,12 @@ class Http
         // POST 数据设置
         if (strtolower($method) === 'post') {
             curl_setopt($curl, CURLOPT_POST, true);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, self::buildQueryData($options['data']));
+            if ($pyload) {
+                $postdata = is_array($options['data']) ? json_encode($options['data']) : $options['data'];
+            } else {
+                $postdata = self::buildQueryData($options['data']);
+            }
+            curl_setopt($curl, CURLOPT_POSTFIELDS, $postdata);
         }
         // 请求超时设置
         if (isset($options['timeout']) && is_numeric($options['timeout'])) {
@@ -127,15 +150,15 @@ class Http
     {
         if (!empty($_SERVER['HTTP_USER_AGENT'])) return $_SERVER['HTTP_USER_AGENT'];
         $userAgents = [
-            "Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1",
-            "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.11 (KHTML, like Gecko) Chrome/20.0.1132.57 Safari/536.11",
-            "Mozilla/5.0 (Windows NT 10.0; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0",
-            "Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; InfoPath.3; rv:11.0) like Gecko",
-            "Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50",
-            "Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0)",
-            "Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1",
-            "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11",
+            'Mozilla/5.0 (Windows NT 6.1; rv:2.0.1) Gecko/20100101 Firefox/4.0.1',
+            'Mozilla/5.0 (Windows NT 6.1) AppleWebKit/536.11 (KHTML, like Gecko) Chrome/20.0.1132.57 Safari/536.11',
+            'Mozilla/5.0 (Windows NT 10.0; WOW64; rv:38.0) Gecko/20100101 Firefox/38.0',
+            'Mozilla/5.0 (Windows NT 10.0; WOW64; Trident/7.0; .NET4.0C; .NET4.0E; .NET CLR 2.0.50727; .NET CLR 3.0.30729; .NET CLR 3.5.30729; InfoPath.3; rv:11.0) like Gecko',
+            'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-us) AppleWebKit/534.50 (KHTML, like Gecko) Version/5.1 Safari/534.50',
+            'Mozilla/4.0 (compatible; MSIE 8.0; Windows NT 6.0; Trident/4.0)',
+            'Mozilla/5.0 (compatible; MSIE 9.0; Windows NT 6.1; Trident/5.0)',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.6; rv:2.0.1) Gecko/20100101 Firefox/4.0.1',
+            'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11',
         ];
         return $userAgents[array_rand($userAgents, 1)];
     }
