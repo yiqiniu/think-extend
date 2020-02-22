@@ -12,6 +12,7 @@
 namespace yiqiniu\swoole;
 
 use Swoole\Server;
+use Swoole\Server\Task;
 use think\App;
 use think\swoole\App as SwooleApp;
 use think\swoole\concerns\InteractsWithPools;
@@ -106,4 +107,39 @@ abstract class BaseSocket
         return $this->container->config->get($this->server_name.".{$name}", $default);
     }
 
+    /**
+     * Set onTask listener.
+     *
+     * @param mixed $server
+     * @param Task $task
+     */
+    public function onTask($server, Task $task)
+    {
+        $this->runInSandbox(function () use ($server, $task) {
+            $this->onTaskAciton($server, $task);
+        });
+    }
+
+    /**
+     * 处理任务的
+     * @param $serv
+     * @param $task_id      任务ID
+     * @param $from_id
+     * @param $data
+     */
+    public function onTaskAciton($serv, Task $task)
+    {
+
+    }
+
+    /**
+     * 任务结束时
+     * @param $serv
+     * @param $task_id
+     * @param $data
+     */
+    public function onFinish($serv, $task_id, $data)
+    {
+
+    }
 }
