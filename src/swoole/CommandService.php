@@ -75,19 +75,19 @@ abstract  class CommandService extends Command
     protected function start(PidManager $pidManager)
     {
         if ($pidManager->isRunning()) {
-            $this->output->writeln('<error>swoole http server process is already running.</error>');
+            $this->output->writeln('<error>'.$this->server_name.' server process is already running.</error>');
             return;
         }
 
         $manager = $this->app->make($this->socket_class);
 
 
-        $this->output->writeln('Starting swoole http server...');
+        $this->output->writeln('Starting '.$this->server_name.' server...');
 
         $host = $manager->getConfig('server.host');
         $port = $manager->getConfig('server.port');
 
-        $this->output->writeln("Swoole http server started: <http://{$host}:{$port}>");
+        $this->output->writeln("$this->server_name server started: <http://{$host}:{$port}>");
         $this->output->writeln('You can exit with <info>`CTRL-C`</info>');
 
         $manager->run();
@@ -102,11 +102,11 @@ abstract  class CommandService extends Command
     protected function reload(PidManager $manager)
     {
         if (!$manager->isRunning()) {
-            $this->output->writeln('<error>no swoole http server process running.</error>');
+            $this->output->writeln('<error>no '.$this->server_name.' server process running.</error>');
             return;
         }
 
-        $this->output->writeln('Reloading swoole http server...');
+        $this->output->writeln('Reloading '.$this->server_name.' server...');
 
         if (!$manager->killProcess(SIGUSR1)) {
             $this->output->error('> failure');
@@ -126,16 +126,16 @@ abstract  class CommandService extends Command
     protected function stop(PidManager $manager)
     {
         if (!$manager->isRunning()) {
-            $this->output->writeln('<error>no swoole http server process running.</error>');
+            $this->output->writeln('<error>no '.$this->server_name.' server process running.</error>');
             return;
         }
 
-        $this->output->writeln('Stopping swoole http server...');
+        $this->output->writeln('Stopping '.$this->server_name.' server...');
 
         $isRunning = $manager->killProcess(SIGTERM, 15);
 
         if ($isRunning) {
-            $this->output->error('Unable to stop the swoole_http_server process.');
+            $this->output->error('Unable to stop the '.$this->server_name.'_server process.');
             return;
         }
 

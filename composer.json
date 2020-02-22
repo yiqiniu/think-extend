@@ -12,7 +12,8 @@
     "require": {
         "topthink/framework": "^6.0.0",
         "ext-json": "*",
-      "ext-curl": "*"
+      "ext-curl": "*",
+        "ext-iconv": "*"
     },
     "autoload": {
         "psr-4": {
