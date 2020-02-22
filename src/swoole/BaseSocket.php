@@ -11,6 +11,7 @@
 
 namespace yiqiniu\swoole;
 
+use Swoole\Runtime;
 use Swoole\Server;
 use Swoole\Server\Task;
 use think\App;
@@ -23,7 +24,6 @@ use think\swoole\PidManager;
 use think\swoole\pool\Cache;
 use think\swoole\pool\Db;
 use think\swoole\Sandbox;
-use yiqiniu\facade\Logger;
 
 /**
  * Class Manager
@@ -75,12 +75,12 @@ abstract class BaseSocket
 
     /**
      * Manager constructor.
-     * @param App        $container
+     * @param App $container
      * @param PidManager $pidManager
      */
     public function __construct(App $container, PidManager $pidManager)
     {
-        $this->container  = $container;
+        $this->container = $container;
         $this->pidManager = $pidManager;
     }
 
@@ -95,18 +95,40 @@ abstract class BaseSocket
     }
 
 
-
     /**
      * 获取配置
      * @param string $name
-     * @param null   $default
+     * @param null $default
      * @return mixed
      */
     public function getConfig(string $name, $default = null)
     {
-        return $this->container->config->get($this->server_name.".{$name}", $default);
+        return $this->container->config->get($this->server_name . ".{$name}", $default);
     }
 
+    /**
+     * "onWorkerStart" listener.
+     *
+     * @param \Swoole\Http\Server|mixed $server
+     *
+     * @throws Exception
+     */
+    public function onWorkerStart($server)
+    {
+        Runtime::enableCoroutine(
+            $this->getConfig('coroutine.enable', true),
+            $this->getConfig('coroutine.flags', SWOOLE_HOOK_ALL)
+        );
+
+        $this->clearCache();
+
+        $this->setProcessName($server->taskworker ? 'task process' : 'worker process');
+
+        $this->prepareApplication();
+
+        $this->triggerEvent("workerStart", $this->app);
+        $this->onWorkStartAction($server);
+    }
     /**
      * Set onTask listener.
      *
@@ -119,27 +141,28 @@ abstract class BaseSocket
             $this->onTaskAciton($server, $task);
         });
     }
+    /**
+     *
+     * @param $serv
+     */
+    abstract public function onWorkStartAction($serv);
+
+
 
     /**
-     * 处理任务的
+     * 异步处理任务
      * @param $serv
      * @param $task_id      任务ID
      * @param $from_id
      * @param $data
      */
-    public function onTaskAciton($serv, Task $task)
-    {
-
-    }
+    abstract protected function onTaskAciton($serv, Task $task);
 
     /**
-     * 任务结束时
+     * 异步任务结束时
      * @param $serv
      * @param $task_id
      * @param $data
      */
-    public function onFinish($serv, $task_id, $data)
-    {
-
-    }
+    abstract protected function onFinish($serv, $task_id, $data);
 }

@@ -373,9 +373,9 @@ class Str
             $c2 = $name[$i + 1];
             if (ord($c) > 0) {
                 // 两个字节的文字
-                $str .= '\u' . base_convert(ord($c), 10, 16) . base_convert(ord($c2), 10, 16);
+                $str .=sprintf("\u%02s%02s",base_convert(ord($c), 10, 16),base_convert(ord($c2), 10, 16));
             } else {
-                $str .= $c2;
+                $str .=sprintf("\u%02s%02d",0,base_convert(ord($c2), 10, 16));
             }
         }
         return $str;
