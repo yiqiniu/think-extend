@@ -5,10 +5,8 @@ namespace yiqiniu\db;
 
 
 use think\db\exception\DbException as Exception;
-use think\exception\DbException;
 use think\Model;
 use think\Paginator;
-use think\View;
 
 
 /**
@@ -202,7 +200,7 @@ class Query extends \think\db\Query
      * @return Paginator
      * @throws Exception
      */
-    public function paginateArray($listRows = null, $simple = false): Paginator
+    public function paginateArray($listRows = null, $simple = false): Array
     {
         if (is_int($simple)) {
             $total = $simple;
@@ -247,8 +245,9 @@ class Query extends \think\db\Query
 
         $this->removeOption('limit');
         $this->removeOption('page');
-
-        return Paginator::make($results, $listRows, $page, $total, $simple, $config);
+        //最多页数
+        $lastPage = (int)ceil($total / $listRows);
+        return ['hasmore' => ($total > $listRows || $lastPage < $page), 'total' => $total, 'page' => $page, 'page_size' => $listRows, 'list' => $results];
     }
 
 
@@ -319,7 +318,8 @@ class Query extends \think\db\Query
 
         $this->options($options);
 
-        return Paginator::make($results, $listRows, $page, null, true, $config);
+        return ['page' => $page, 'page_size' => $listRows, 'list' => $results];
+
     }
 
     /**
