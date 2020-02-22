@@ -150,13 +150,13 @@ abstract  class CommandService extends Command
      * @param PidManager $pidManager
      * @return void
      */
-    protected function restart(Manager $manager, PidManager $pidManager)
+    protected function restart(PidManager $pidManager)
     {
         if ($pidManager->isRunning()) {
             $this->stop($pidManager);
         }
 
-        $this->start($manager, $pidManager);
+        $this->start($pidManager);
     }
 
     /**
