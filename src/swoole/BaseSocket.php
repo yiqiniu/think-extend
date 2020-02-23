@@ -70,7 +70,8 @@ abstract class BaseSocket
         'managerStop',
         'request',
         'task',
-        'finish'
+        'finish',
+        'packet'
     ];
 
     /**

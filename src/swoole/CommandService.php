@@ -167,7 +167,7 @@ abstract  class CommandService extends Command
         $config      = $this->app->config;
         $host        = $config->get($this->server_name.'.server.host');
         $port        = $config->get($this->server_name.'.server.port');
-        $socketType  = $config->get($this->server_name.'.server.socket_type', SWOOLE_SOCK_TCP);
+        $socketType  = $config->get($this->server_name.'.server.sock_type', SWOOLE_SOCK_TCP);
         $mode        = $config->get($this->server_name.'.server.mode', SWOOLE_PROCESS);
 
         /** @var \Swoole\Server $server */
