@@ -197,10 +197,10 @@ class Query extends \think\db\Query
      * @access public
      * @param int|array $listRows 每页数量 数组表示配置参数
      * @param int|bool $simple 是否简洁模式或者总记录数
-     * @return Paginator
+     * @return array
      * @throws Exception
      */
-    public function paginateArray($listRows = null, $simple = false): Array
+    public function paginateArray($listRows = null, $simple = false): array
     {
         if (is_int($simple)) {
             $total = $simple;
@@ -247,7 +247,13 @@ class Query extends \think\db\Query
         $this->removeOption('page');
         //最多页数
         $lastPage = (int)ceil($total / $listRows);
-        return ['hasmore' => ($total > $listRows || $lastPage < $page), 'total' => $total, 'page' => $page, 'page_size' => $listRows, 'list' => $results];
+        return [
+            'hasmore' => ($total > $listRows || ($lastPage>0 && $lastPage < $page)),
+            'total' => $total,
+            'page' => $page,
+            'page_size' => $listRows,
+            'list' => $results
+        ];
     }
 
 
