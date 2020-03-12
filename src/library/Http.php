@@ -15,6 +15,8 @@
 
 namespace yiqiniu\library;
 
+use CURLFile;
+
 /**
  * CURL数据请求管理器
  * Class Http
@@ -22,6 +24,7 @@ namespace yiqiniu\library;
  */
 class Http
 {
+
     /**
      * 以get模拟网络请求
      * @param string $url HTTP请求URL地址
@@ -36,7 +39,7 @@ class Http
     }
 
     /**
-     * 以get模拟网络请求
+     * 以post模拟网络请求
      * @param string $url HTTP请求URL地址
      * @param array $data POST请求数据
      * @param array $options CURL参数
@@ -118,7 +121,24 @@ class Http
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
         curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
         $content = curl_exec($curl);
+        // 记录错误信息
+        $error = null;
+        if ($content === false) {
+            $error = [
+                'code' => curl_errno($curl),
+                'msg' => curl_error($curl),
+            ];
+        }
         curl_close($curl);
+        if ($error) {
+            Logger::log(
+                [
+                    'url' => $url,
+                    'method' => $method,
+                    'options' => $options,
+                    'error' => $error
+                ], true, 'curl_error', 'error');
+        }
         return $content;
     }
 
@@ -130,12 +150,15 @@ class Http
      */
     private static function buildQueryData($data, $build = true)
     {
-        if (!is_array($data)) return $data;
-        foreach ($data as $key => $value) if (is_object($value) && $value instanceof \CURLFile) {
-            $build = false;
-        } elseif (is_string($value) && class_exists('CURLFile', false) && stripos($value, '@') === 0) {
-            if (($filename = realpath(trim($value, '@'))) && file_exists($filename)) {
-                list($build, $data[$key]) = [false, new \CURLFile($filename)];
+        if (!is_array($data))
+            return $data;
+        foreach ($data as $key => $value) {
+            if (is_object($value) && $value instanceof \CURLFile) {
+                $build = false;
+            } elseif (is_string($value) && class_exists('CURLFile', false) && stripos($value, '@') === 0) {
+                if (($filename = realpath(trim($value, '@'))) && file_exists($filename)) {
+                    list($build, $data[$key]) = [false, new \CURLFile($filename)];
+                }
             }
         }
         return $build ? http_build_query($data) : $data;
@@ -161,6 +184,44 @@ class Http
             'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_7_0) AppleWebKit/535.11 (KHTML, like Gecko) Chrome/17.0.963.56 Safari/535.11',
         ];
         return $userAgents[array_rand($userAgents, 1)];
+    }
+
+
+    /**
+     * 根据文件路径获取一个CURLFile类实例
+     * @param string $file 文件路径
+     * @param string $mime
+     * @param string $filename
+     * @return CURLFile
+     * @Date 2019/4/29
+     */
+    public static function makeCurlFile(string $file, string $mime = '', string $filename = '')
+    {
+
+        /**
+         * .xls mime为 application/vnd.ms-excel
+         * .xlsx mime为 application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+         * 可参考 https://developer.mozilla.org/zh-CN/docs/Web/HTTP/Basics_of_HTTP/MIME_types/Complete_list_of_MIME_types
+         *
+         *  注意：也可以使用 finfo类动态获取，但需要装fileinfo扩展
+         *  demo:
+         * $result = new finfo();
+         * if (is_resource($result) === true) {
+         * return $result->file($filename, FILEINFO_MIME_TYPE);
+         * }
+         * return false;
+         */
+        if (empty($mime)) {
+            $mime = 'application/octet-stream';
+            if (file_exists('mime_content_type')) {
+                $mime = mime_content_type($file);
+            }
+        }
+        if (empty($filename)) {
+            $info = pathinfo($file);
+            $filename = $info['basename'];
+        }
+        return new CURLFile($file, $mime, $filename);
     }
 
 }

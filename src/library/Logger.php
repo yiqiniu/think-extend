@@ -104,8 +104,8 @@ class Logger
 
     /**
      *  记录日志到文件中
-     * @param $content string  要记录的内容
-     * @param $append  bool     内容是否追加
+     * @param $content string|array|object  要记录的内容
+     * @param $append  bool|string     内容是否追加
      * @param $prefix  string   文件名前缀
      * @param string $dir
      */

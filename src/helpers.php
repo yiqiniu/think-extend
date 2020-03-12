@@ -1,5 +1,6 @@
 <?php
 
+use think\db\exception\DbException;
 use think\exception\HttpResponseException;
 use yiqiniu\facade\Logger;
 use yiqiniu\facade\Token;
@@ -47,9 +48,15 @@ if (!function_exists('api_result')) {
             // 记录异常
             Logger::exception($code);
             $msg = $code->getMessage();
-            $code = $code->getCode();
-        } elseif ($code instanceof \think\exception\ValidateException) {
-            // 验证异常
+            $code = API_ERROR;
+        } elseif ($code instanceof think\db\exception\DbException) {
+            // 数据库异常
+            Logger::exception($code);
+            $msg = $code->getMessage();
+            $code = API_ERROR;
+        } elseif ($code instanceof RuntimeException) {
+            // 运行时异常
+            Logger::exception($code);
             $msg = $code->getMessage();
             $code = API_VAILD_EXCEPTION;
         } elseif (is_object($code)) {
@@ -96,6 +103,7 @@ if (!function_exists('api_refresh_token')) {
     }
 }
 
+
 if (!function_exists('httpRequest')) {
     /**
      * 发送HTTP请求方法，目前只支持CURL发送请求
@@ -106,57 +114,39 @@ if (!function_exists('httpRequest')) {
      * @param array $header
      * @return array  $data   响应数据
      * @throws \Exception
+     * @throws \yiqiniu\exception\ApiException
      */
     function httpRequest($url, $params = [], $method = 'GET', $upload = false, $header = [])
     {
-        try {
-            $method = strtoupper($method);
-            $opts = [
-                CURLOPT_TIMEOUT => 60,
-                CURLOPT_SSL_VERIFYPEER => false,
-                CURLOPT_SSL_VERIFYHOST => false,
-                CURLOPT_RETURNTRANSFER => 1,
-                CURLOPT_HTTPHEADER => $header,
-                CURLOPT_AUTOREFERER => true,
-                CURLOPT_FOLLOWLOCATION => 1
-            ];
-            /* 根据请求类型设置特定参数 */
-            switch (strtoupper($method)) {
-                case 'GET':
-                    if (!empty($params)) {
-                        $params = is_array($params) ? http_build_query($params) : $params;
-                        $url = $url . (strpos($url, "?") > 0 ? "&" : "?") . $params;
+
+        $ret = [];
+        switch (strtoupper($method)) {
+            case 'GET':
+                $ret = Http::get($url, $params, $header);
+                break;
+            case 'POST':
+                //设置上传文件
+                if (!empty($upload)) {
+                    // 上传文件
+                    if (is_array($upload)) {
+                        $params[] = Http::makeCurlFile($upload['file'], $upload['type'], $upload['name']);
                     }
-                    $opts[CURLOPT_URL] = $url;
-                    break;
-                case 'POST':
-                    $opts[CURLOPT_URL] = $url;
-                    $opts[CURLOPT_POST] = 1;
-                    //判断是否传输文件
-                    if ($upload) {        //设置上传文件
-                        $file = new \CURLFile($upload['file'], $upload['type'], $upload['name']);
-                        $params[] = $file;
+                    if (is_string($upload)) {
+                        $params[] = Http::makeCurlFile($upload);
                     }
-                    $opts[CURLOPT_POSTFIELDS] = $params;
-                    break;
-                default:
-                    api_exception(API_VAILD_EXCEPTION, '不支持的请求方式！');
-            }
-            /* 初始化并执行curl请求 */
-            $ch = curl_init();
-            curl_setopt_array($ch, $opts);
-            $data = curl_exec($ch);
-            $error = curl_error($ch);
-            curl_close($ch);
-            if ($error)
-                api_exception(API_VAILD_EXCEPTION, '请求发生错误：' . $error);
-            return $data;
-        } catch (\Exception $e) {
-            throw $e;
+                }
+                $ret = Http::post($url, $params, $header);
+                break;
+            case 'PAYLOAD':
+                $ret = Http::payload($url, $params);
+                break;
+            default:
+                throw  new yiqiniu\exception\ApiException('CURL不支持的请求方式！', API_VAILD_EXCEPTION);
+                break;
         }
+        return $ret;
     }
 }
-
 if (!function_exists('writelog')) {
     /**
      * 写入日志
@@ -165,9 +155,9 @@ if (!function_exists('writelog')) {
      *
      *
      */
-    function writelog($content, $append = true, $prefix = '',$dir='logs')
+    function writelog($content, $append = true, $prefix = '', $dir = 'logs')
     {
-        Logger::log($content, $append, $prefix,$dir);
+        Logger::log($content, $append, $prefix, $dir);
     }
 
 }
