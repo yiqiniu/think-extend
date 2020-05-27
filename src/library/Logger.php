@@ -12,7 +12,9 @@ namespace yiqiniu\library;
 class Logger
 {
 
-    private $runtime_path = '';
+    private $runtime_path;
+
+    private $save_format = 'array';
 
     /**
      * 架构函数
@@ -30,7 +32,9 @@ class Logger
             if (!file_exists($this->runtime_path)) {
                 mkdir($this->runtime_path, 0777, true);
             }
+
         }
+
 
     }
 
@@ -84,7 +88,11 @@ class Logger
             file_exists($dirname) || mkdir($dirname, 0755, true);
 
             if (!is_string($strdata)) {
-                $strdata = is_array($strdata) ? json_encode($strdata, JSON_UNESCAPED_UNICODE) : print_r($strdata, true);
+                if ($this->save_format === 'json') {
+                    $strdata = json_encode($strdata, JSON_UNESCAPED_UNICODE);
+                } else {
+                    $strdata = print_r($strdata, true);
+                }
             }
             $str = "[" . date("Y-m-d H:i:s") . "]" . $strdata . "\r\n";
             if ($append)
@@ -94,6 +102,7 @@ class Logger
             }
             fwrite($rs, $str);
             fclose($rs);
+
             return true;
         } catch (\Exception $e) {
 
@@ -104,20 +113,25 @@ class Logger
 
     /**
      *  记录日志到文件中
-     * @param $content string|array|object  要记录的内容
-     * @param $append  bool|string     内容是否追加
-     * @param $prefix  string   文件名前缀
+     * @param        $content string|array|object  要记录的内容
+     * @param        $append  bool|string     内容是否追加
+     * @param        $prefix  string   文件名前缀
      * @param string $dir
+     * @param string $format
      */
-    public function log($content, $append = true, $prefix = '', $dir = 'logs')
+    public function log($content, $append = true, $prefix = '', $dir = 'logs',$format='array')
     {
+
         if (is_string($append)) {
             if (!empty($prefix)) {
+                $format = $dir;
                 $dir = $prefix;
             }
             $prefix = $append;
             $append = true;
         }
+        // 保存格式
+        $this->save_format = $format;
         $dir = empty($dir) ? 'logs' : $dir;
         $logfile = $this->runtime_path . '/' . $dir . '/' . date('Ym') . '/' . ($prefix !== '' ? $prefix . '_' : '') . date('Ymd') . '.log';
         $this->writeLogger($logfile, $content, $append);

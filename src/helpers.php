@@ -8,7 +8,7 @@ use yiqiniu\library\Http;
 
 if (!function_exists('api_exception')) {
     /**
-     * @param int $code 异常代码
+     * @param int    $code 异常代码
      * @param string $msg 异常信息
      * @throws \yiqiniu\exception\ApiException
      */
@@ -30,35 +30,26 @@ if (!function_exists('api_exception')) {
 
 if (!function_exists('api_result')) {
     /** 输出返回结果
-     * @param $code
+     * @param        $code
      * @param string $msg
-     * @param array $data
+     * @param array  $data
      * @throws HttpResponseException
      */
     function api_result($code, $msg = '', $data = [])
     {
 
-        if ($code instanceof yiqiniu\exception\ApiException) {
-            $data = $code->getData();
-            if (isset($data['data']))
-                $data = $data['data'];
+        if ($code instanceof Exception) {
+            if (method_exists($code, 'getData')) {
+                $data = $code->getData();
+                if (isset($data['data'])) {
+                    $data = $data['data'];
+                }
+                $code = $code->getCode();
+            } else {
+                Logger::exception($code);
+                $code = API_ERROR;
+            }
             $msg = $code->getMessage();
-            $code = $code->getCode();
-        } elseif ($code instanceof think\Exception) {
-            // 记录异常
-            Logger::exception($code);
-            $msg = $code->getMessage();
-            $code = API_ERROR;
-        } elseif ($code instanceof think\db\exception\DbException) {
-            // 数据库异常
-            Logger::exception($code);
-            $msg = $code->getMessage();
-            $code = API_ERROR;
-        } elseif ($code instanceof RuntimeException) {
-            // 运行时异常
-            Logger::exception($code);
-            $msg = $code->getMessage();
-            $code = API_VAILD_EXCEPTION;
         } elseif (is_object($code)) {
             if (method_exists($code, 'toArray')) {
                 $data = $code->toArray();
@@ -108,10 +99,10 @@ if (!function_exists('httpRequest')) {
     /**
      * 发送HTTP请求方法，目前只支持CURL发送请求
      * @param string $url 请求URL
-     * @param array $params 请求参数
+     * @param array  $params 请求参数
      * @param string $method 请求方法GET/POST
-     * @param bool $upload
-     * @param array $header
+     * @param bool   $upload
+     * @param array  $header
      * @return array  $data   响应数据
      * @throws \Exception
      * @throws \yiqiniu\exception\ApiException
@@ -155,38 +146,42 @@ if (!function_exists('writelog')) {
      *
      *
      */
-    function writelog($content, $append = true, $prefix = '', $dir = 'logs')
+    function writelog($content, $append = true, $prefix = '', $dir = 'logs', $format = 'array')
     {
-        Logger::log($content, $append, $prefix, $dir);
+        Logger::log($content, $append, $prefix, $dir, $format);
     }
 
 }
 
+if (!function_exists('arrayToXml')) {
 
-/**
- * 通过百度接口查询物流信息
- * @param string $number 物流单号
- * @return array|mixed
- */
-function express_query($number)
-{
-    try {
-        list($microtime, $clientIp, $list) = [time(), request()->ip(), []];
-        $options = ['header' => ['Host' => 'www.kuaidi100.com', 'CLIENT-IP' => $clientIp, 'X-FORWARDED-FOR' => $clientIp], 'cookie_file' => runtime_path() . 'cookie'];
-        $location = "https://sp0.baidu.com/9_Q4sjW91Qh3otqbppnN2DJv/pae/channel/data/asyncqury?cb=callback&appid=4001&&nu={$number}&vcode=&token=&_={$microtime}";
-        $result = json_decode(str_replace('/**/callback(', '', trim(Http::get($location, [], $options), ')')), true);
-        if (empty($result['data']['info']['context'])) { // 第一次可能失败，这里尝试第二次查询
-            $result = json_decode(str_replace('/**/callback(', '', trim(Http::get($location, [], $options), ')')), true);
-            if (empty($result['data']['info']['context'])) {
-                return $list;
-            }
-        }
-        foreach ($result['data']['info']['context'] as $vo) $list[] = [
-            'time' => date('Y-m-d H:i:s', $vo['time']), 'ftime' => date('Y-m-d H:i:s', $vo['time']), 'context' => $vo['desc'],
-        ];
-        return $list;
-
-    } catch (Exception $exception) {
-        return [];
+    /**
+     * 数组转XML
+     * @param        $array
+     * @param string $root 根节点
+     * @param bool   $replaceSpaces 处理键名 默认情况下，数组键名中的所有空格都将转换为下划线。如果要不使用此功能，可将第三个参数设置为false
+     * @param null   $xmlEncoding XML指定编码
+     * @param string $xmlVersion XML版本号
+     * @param array  $domProperties 指定DOM属性
+     * @return string
+     */
+    function arrayToXml($array, $root = '', $replaceSpaces = true, $xmlEncoding = null, $xmlVersion = '1.0', array $domProperties = [])
+    {
+        return yiqiniu\library\ArrayToXml::convert($array, $root, $replaceSpaces, $xmlEncoding, $xmlVersion, $domProperties);
     }
 }
+
+
+if (!function_exists('xmlToArray')) {
+
+    /**
+     * 数组转XML
+     * @param string $xml 解决的xml文件
+     * @return array
+     */
+    function xmlToArray($xml)
+    {
+        return \yiqiniu\library\XmlToArray::convert($xml);
+    }
+}
+

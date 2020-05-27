@@ -30,6 +30,12 @@ $api_config = [
         'expire' => 0,
     ],
 
+    'log'=>[
+        //自动删除
+        'auto_delete'=>true,
+        //保留7天
+        'reserve_days'=>7
+    ]
 
 ];
 
