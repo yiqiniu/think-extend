@@ -44,12 +44,13 @@ if (!function_exists('api_result')) {
                 if (isset($data['data'])) {
                     $data = $data['data'];
                 }
-                $code = $code->getCode();
+                $result_code = $code->getCode();
             } else {
                 Logger::exception($code);
-                $code = API_ERROR;
+                $result_code = API_ERROR;
             }
             $msg = $code->getMessage();
+            $code= $result_code;
         } elseif (is_object($code)) {
             if (method_exists($code, 'toArray')) {
                 $data = $code->toArray();
