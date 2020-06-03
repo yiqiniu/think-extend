@@ -142,8 +142,8 @@ if (!function_exists('httpRequest')) {
 if (!function_exists('writelog')) {
     /**
      * 写入日志
-     * @param  $content  string  要写入的日志
-     * @append  boole  追加 true   false 不追加
+     * @param  $content  string|array|object  要写入的日志
+     * @append  boole|string  追加 true   false 不追加
      *
      *
      */
