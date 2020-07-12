@@ -272,9 +272,12 @@ if (!function_exists('httpRequest_async')) {
 if (!function_exists('writelog')) {
     /**
      * 写入日志
-     * @param  $content  string|array|object  要写入的日志
+     * @param        $content  mixed  要写入的日志
+     * @param bool   $append
+     * @param string $prefix
+     * @param string $dir
+     * @param string $format
      * @append  boole|string  追加 true   false 不追加
-     *
      *
      */
     function writelog($content, $append = true, $prefix = '', $dir = 'logs', $format = 'array')
