@@ -1,6 +1,5 @@
 <?php
 
-use think\db\exception\DbException;
 use think\exception\HttpResponseException;
 use yiqiniu\facade\Logger;
 use yiqiniu\facade\Token;
@@ -50,7 +49,7 @@ if (!function_exists('api_result')) {
                 $result_code = API_ERROR;
             }
             $msg = $code->getMessage();
-            $code= $result_code;
+            $code = $result_code;
         } elseif (is_object($code)) {
             if (method_exists($code, 'toArray')) {
                 $data = $code->toArray();
@@ -66,7 +65,7 @@ if (!function_exists('api_result')) {
 
         $result = [
             'code' => $code,
-            'msg' => $msg != '' ? $msg : (config('status.')[$code]),
+            'msg' => $msg != '' ? $msg : (API_STATUS_TEXT[$code] ?? ''),
             'time' => time(),
             'data' => $data
         ];
