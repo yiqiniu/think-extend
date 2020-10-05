@@ -17,6 +17,7 @@ namespace yiqiniu\library;
 
 use CURLFile;
 use think\Exception;
+use yiqiniu\facade\Logger;
 
 /**
  * CURL数据请求管理器
