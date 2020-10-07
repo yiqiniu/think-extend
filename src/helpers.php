@@ -26,7 +26,7 @@ if (!function_exists('api_exception')) {
             $msg = $code;
             $code = API_VAILD_EXCEPTION;
         }
-        throw  new yiqiniu\exception\ApiException($msg, $code);
+        throw  new ApiException($msg, $code);
     }
 }
 
