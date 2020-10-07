@@ -1,9 +1,13 @@
 <?php
 
+use Gouguoyin\EasyHttp\Http;
+use Gouguoyin\EasyHttp\RequestException;
+use Gouguoyin\EasyHttp\Response;
 use think\exception\HttpResponseException;
+use yiqiniu\exception\ApiException;
 use yiqiniu\facade\Logger;
 use yiqiniu\facade\Token;
-use yiqiniu\library\Http;
+
 
 if (!function_exists('api_exception')) {
     /**
@@ -65,7 +69,7 @@ if (!function_exists('api_result')) {
 
         $result = [
             'code' => $code,
-            'msg' => $msg != '' ? $msg : (API_STATUS_TEXT[$code] ?? ''),
+            'msg' => empty($msg) ? (API_STATUS_TEXT[$code] ?? '未知') : $msg,
             'time' => time(),
             'data' => $data
         ];
@@ -98,52 +102,182 @@ if (!function_exists('api_refresh_token')) {
 if (!function_exists('httpRequest')) {
     /**
      * 发送HTTP请求方法，目前只支持CURL发送请求
-     * @param string $url 请求URL
-     * @param array  $params 请求参数
-     * @param string $method 请求方法GET/POST
-     * @param bool   $upload
-     * @param array  $header
+     * @param string            $url 请求URL
+     * @param array             $params 请求参数
+     * @param string            $method 请求方法GET/POST
+     * @param bool|array|string $upload
+     * @param string            $type 返回格式
+     * @param array             $header
      * @return array  $data   响应数据
      * @throws \Exception
      * @throws \yiqiniu\exception\ApiException
      */
-    function httpRequest($url, $params = [], $method = 'GET', $upload = false, $header = [])
+    function httpRequest($url, $params = [], $method = 'GET', $upload = false, $type = 'json', $header = [])
     {
 
-        $ret = [];
-        switch (strtoupper($method)) {
-            case 'GET':
-                $ret = Http::get($url, $params, $header);
-                break;
-            case 'POST':
-                //设置上传文件
-                if (!empty($upload)) {
-                    // 上传文件
-                    if (is_array($upload)) {
-                        $params[] = Http::makeCurlFile($upload['file'], $upload['type'], $upload['name']);
+        $response = [];
+        try {
+            switch (strtoupper($method)) {
+                case 'GET':
+                    $response = Http::withHeaders($header)->get($url, $params);
+                    break;
+                case 'PUT':
+                    $response = Http::withHeaders($header)->put($url, $params);
+                    break;
+                case 'DELETE':
+                    $response = Http::withHeaders($header)->delete($url, $params);
+                    break;
+                case 'PATCH':
+                    $response = Http::withHeaders($header)->patch($url, $params);
+                    break;
+                case 'PAYLOAD':
+                    $response = Http::asJson()->post($url, $params);
+                    break;
+                case 'POST':
+                    if ($upload) {
+                        $input_name = $upload['name'] ?? 'file';
+                        if (is_array($upload)) {
+                            $file = $upload['file'] ?? '';
+                        } else {
+                            $file = $upload;
+                        }
+                        if (!empty($file) && file_exists($file)) {
+                            $info = pathinfo($file);
+                            $filename = $info['basename'] ?? '';
+                            $response = Http::asMultipart($input_name, fopen($filename, 'rb'), $filename, $header)
+                                ->post($url, $params);
+                        } else {
+                            $response = Http::withHeaders($header)->post($url, $params);
+                        }
+                    } else {
+                        $response = Http::withHeaders($header)->post($url, $params);
                     }
-                    if (is_string($upload)) {
-                        $params[] = Http::makeCurlFile($upload);
-                    }
-                }
-                $ret = Http::post($url, $params, $header);
-                break;
-            case 'PAYLOAD':
-                $ret = Http::payload($url, $params);
-                break;
-            default:
-                throw  new yiqiniu\exception\ApiException('CURL不支持的请求方式！', API_VAILD_EXCEPTION);
-                break;
+                    break;
+                default:
+                    throw  new ApiException('CURL不支持的请求方式！', API_VAILD_EXCEPTION);
+                    break;
+            }
+
+            $result = null;
+            switch ($type) {
+                case 'json';
+                    $result = $response->json();
+                    break;
+                case 'array';
+                    $result = $response->array();
+                    break;
+                default:
+                    $result = $response->body();
+                    break;
+            }
+            return $result;
+        } catch (ApiException  $e) {
+            throw  $e;
         }
-        return $ret;
+
+    }
+}
+if (!function_exists('httpRequest_async')) {
+    /**
+     * 发送HTTP请求方法，目前只支持CURL发送请求
+     * @param string            $url 请求URL
+     * @param callable          $success 成功后的回调
+     * @param callable          $fail 失败后回调
+     * @param array             $params 请求参数
+     * @param string            $method 请求方法GET/POST
+     * @param bool|array|string $upload
+     * @param string            $type 返回格式
+     * @param array             $header
+     * @throws \Exception
+     * @throws \yiqiniu\exception\ApiException
+     */
+    function httpRequest_async($url, $success, $fail, $params = [], $method = 'GET', $upload = false, $type = 'json', $header = [])
+    {
+
+        //默认成功
+        $default_success = static function (Response $response) use ($type, $success) {
+            $result = null;
+            switch ($type) {
+                case 'json';
+                    $result = $response->json();
+                    break;
+                case 'array';
+                    $result = $response->array();
+                    break;
+                default:
+                    $result = $response->body();
+                    break;
+            }
+            if ($success !== null && is_callable($success)) {
+                $success($result);
+            }
+        };
+
+        //默认失败
+        $default_fail = static function (RequestException $e) use ($fail) {
+            if ($fail !== null && is_callable($fail)) {
+                $fail(['code' => $e->getCode(), 'msg' => $e->getMessage()]);
+            }
+        };
+
+        try {
+            switch (strtoupper($method)) {
+                case 'GET':
+                    Http::withHeaders($header)->getAsync($url, $params, $default_success, $default_fail);
+                    break;
+                case 'PUT':
+                    Http::withHeaders($header)->putAsync($url, $params, $default_success, $default_fail);
+                    break;
+                case 'DELETE':
+                    Http::withHeaders($header)->deleteAsync($url, $params, $default_success, $default_fail);
+                    break;
+                case 'PATCH':
+                    Http::withHeaders($header)->patchAsync($url, $params, $default_success, $default_fail);
+                    break;
+                case 'PAYLOAD':
+                    Http::asJson()->postAsync($url, $params, $default_success, $default_fail);
+                    break;
+                case 'POST':
+                    if ($upload) {
+                        $input_name = $upload['name'] ?? 'file';
+                        if (is_array($upload)) {
+                            $file = $upload['file'] ?? '';
+                        } else {
+                            $file = $upload;
+                        }
+                        if (!empty($file) && file_exists($file)) {
+                            $info = pathinfo($file);
+                            $filename = $info['basename'] ?? '';
+                            Http::asMultipart($input_name, fopen($filename, 'rb'), $filename, $header)
+                                ->postAsync($url, $params, $default_success, $default_fail);
+                        } else {
+                            Http::withHeaders($header)->postAsync($url, $params, $default_success, $default_fail);
+                        }
+                    } else {
+                        Http::withHeaders($header)->postAsync($url, $params, $default_success, $default_fail);
+                    }
+                    break;
+                default:
+                    throw  new ApiException('CURL不支持的请求方式！', API_VAILD_EXCEPTION);
+                    break;
+            }
+
+
+        } catch (ApiException  $e) {
+            throw  $e;
+        }
+
     }
 }
 if (!function_exists('writelog')) {
     /**
      * 写入日志
-     * @param  $content  string|array|object  要写入的日志
+     * @param        $content  mixed  要写入的日志
+     * @param bool   $append
+     * @param string $prefix
+     * @param string $dir
+     * @param string $format
      * @append  boole|string  追加 true   false 不追加
-     *
      *
      */
     function writelog($content, $append = true, $prefix = '', $dir = 'logs', $format = 'array')

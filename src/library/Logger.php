@@ -12,9 +12,17 @@ namespace yiqiniu\library;
 class Logger
 {
 
-    private $runtime_path;
 
-    private $save_format = 'array';
+    private $config = [
+        //自动删除
+        'auto_delete' => false,
+        //保留天数
+        'reserve_days' => 7,
+        //日志格式
+        'format' => 'array',
+        //保存位置
+        'save_path' => ''
+    ];
 
     /**
      * 架构函数
@@ -23,19 +31,10 @@ class Logger
      */
     public function __construct(array $config = [])
     {
-        if (defined("RUNTIME_PATH")) {
-            $this->runtime_path = RUNTIME_PATH;
-        } elseif (function_exists("app")) {
-            $this->runtime_path = app()->getRuntimePath();
-        } else {
-            $this->runtime_path = dirname(__FILE__) . '/runtime';
-            if (!file_exists($this->runtime_path)) {
-                mkdir($this->runtime_path, 0777, true);
-            }
-
+        $this->config = array_merge($this->config, $config);
+        if (empty($this->config['save_path'])) {
+            $this->config['save_path'] = $this->getRuntimePath();
         }
-
-
     }
 
 
@@ -67,7 +66,7 @@ class Logger
         $logdata['trace'] = $e->getTraceAsString();
 
 
-        $exception_log = $this->runtime_path . '/exception/' . date('Ym') . '/' . ($controller === '' ? '' : $controller . '_') . date('Ymd') . '.log';
+        $exception_log = $this->config['save_path'] . '/exception/' . date('Ym') . '/' . ($controller === '' ? '' : $controller . '_') . date('Ymd') . '.log';
 
         $this->writeLogger($exception_log, print_r($logdata, true));
         return true;
@@ -85,10 +84,10 @@ class Logger
     {
         try {
             $dirname = dirname($filename);
-            file_exists($dirname) || mkdir($dirname, 0755, true);
+            file_exists($dirname) || mkdir($dirname, 0755, true) || is_dir($dirname);
 
             if (!is_string($strdata)) {
-                if ($this->save_format === 'json') {
+                if ($this->config['format'] === 'json') {
                     $strdata = json_encode($strdata, JSON_UNESCAPED_UNICODE);
                 } else {
                     $strdata = print_r($strdata, true);
@@ -96,13 +95,14 @@ class Logger
             }
             $str = "[" . date("Y-m-d H:i:s") . "]" . $strdata . "\r\n";
             if ($append)
-                $rs = fopen($filename, "a+");
+                $rs = fopen($filename, 'a+');
             else {
-                $rs = fopen($filename, "w");
+                $rs = fopen($filename, 'w');
             }
             fwrite($rs, $str);
             fclose($rs);
-
+            // 删除历史日志
+            $this->deleteHistroy($filename);
             return true;
         } catch (\Exception $e) {
 
@@ -118,8 +118,9 @@ class Logger
      * @param        $prefix  string   文件名前缀
      * @param string $dir
      * @param string $format
+     * @return bool
      */
-    public function log($content, $append = true, $prefix = '', $dir = 'logs',$format='array')
+    public function log($content, $append = true, $prefix = '', $dir = 'logs', $format = 'array')
     {
 
         if (is_string($append)) {
@@ -131,10 +132,44 @@ class Logger
             $append = true;
         }
         // 保存格式
-        $this->save_format = $format;
+        $this->config['format'] = $format;
         $dir = empty($dir) ? 'logs' : $dir;
-        $logfile = $this->runtime_path . '/' . $dir . '/' . date('Ym') . '/' . ($prefix !== '' ? $prefix . '_' : '') . date('Ymd') . '.log';
-        $this->writeLogger($logfile, $content, $append);
+        $logfile = $this->config['save_path'] . '/' . $dir . '/' . date('Ym') . '/' . ($prefix !== '' ? $prefix . '_' : '') . date('Ymd') . '.log';
+        return $this->writeLogger($logfile, $content, $append);
     }
 
+    /**
+     * 删除历史
+     * @param $filename      string 当前日期的文件名
+     */
+    private function deleteHistroy($filename)
+    {
+        if ($this->config['auto_delete']) {
+            $del_date = date('Ymd', strtotime('-' . ($this->config['reserve_days']) ?? '7') . 'day');
+            $filename = str_replace(date('Ymd'), $del_date, $filename);
+            if (file_exists($filename)) {
+                unlink($filename);
+            }
+        }
+    }
+
+    /**
+     * 获取当有框架的runtime目录
+     */
+    private function getRuntimePath()
+    {
+        if (defined("RUNTIME_PATH")) {
+            $runtime_path = RUNTIME_PATH;
+        } elseif (function_exists("app")) {
+            $runtime_path = app()->getRuntimePath();
+        } else {
+            $runtime_path = __DIR__ . '/runtime';
+        }
+        if (!file_exists($runtime_path)) {
+            if (!mkdir($concurrentDirectory = $runtime_path, 0777, true) && !is_dir($concurrentDirectory)) {
+                throw new \RuntimeException(sprintf('Directory "%s" was not created', $concurrentDirectory));
+            }
+        }
+        return $runtime_path;
+    }
 }
