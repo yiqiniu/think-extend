@@ -19,7 +19,7 @@ use yiqiniu\exception\ApiException;
 
 class Token
 {
-    private $key = '';
+    private $key;
     private $expire = 0;
 
     /**
