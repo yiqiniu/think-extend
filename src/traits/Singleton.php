@@ -15,11 +15,11 @@ namespace yiqiniu\traits;
  */
 trait Singleton
 {
-    protected static $_instance = null;
+    protected static $_instance = [];
 
     /**
      * Procdata constructor.
-     * @param null $_instance
+     * @param mixed ...$args
      */
     private function __construct(...$args)
     {
@@ -34,11 +34,18 @@ trait Singleton
 
     public static function getInstance(...$args)
     {
-        if (self::$_instance == null) {
-            self::$_instance = new self(...$args);
+        // 获取调用者，产生一个单列调用值
+        $loader_key = md5(static::class);
+        if (empty(self::$_instance[$loader_key])) {
+            self::$_instance[$loader_key] = new static($args);
         }
-        return self::$_instance;
+        if (method_exists(self::$_instance[$loader_key], '_initilize')) {
+            self::$_instance[$loader_key]->_initilize();
+        }
+        return self::$_instance[$loader_key];
     }
+
+
 
 
 }

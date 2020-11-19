@@ -1,0 +1,15 @@
+<?php
+
+namespace {%namespace%};
+
+/**
+ * {%comment%}
+ * Class {%className%}
+ * @package {%namespace%}
+ */
+
+class {%className%}Model extends BaseModel
+{
+    //
+    {%tablename%}
+}

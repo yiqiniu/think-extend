@@ -1,7 +1,5 @@
 <?php
-
-
-namespace yiqiniu\library;
+namespace yiqiniu\traits;
 
 
 use think\Exception;
