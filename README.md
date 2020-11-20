@@ -40,6 +40,8 @@
         'expire' => 0,
     ],
 ]
+
 ```
-
-
+使用jwt 认证
+composer require firebase/php-jwt
+```
