@@ -1,7 +1,7 @@
 <?php
 
 
-namespace app\facaiapi\traits;
+namespace yiqiniu\traits;
 
 
 use think\Cache;

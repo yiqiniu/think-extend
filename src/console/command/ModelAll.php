@@ -9,7 +9,8 @@ use think\console\command\Make;
 use think\console\Input;
 use think\console\input\Option;
 use think\console\Output;
-use yiqiniu\facade\Db;
+use think\facade\Db;
+
 
 /**
  * Class ModelAll

@@ -2,7 +2,7 @@
 
 namespace {%namespace%};
 
-use yiqiniu\db\Model;
+use yiqiniu\db\YqnModel;
 
 /**
  * Class {%className%}
@@ -10,7 +10,7 @@ use yiqiniu\db\Model;
  * 基础Model
  */
 
-class BaseModel extends Model
+class BaseModel extends YqnModel
 {
     //
 }
