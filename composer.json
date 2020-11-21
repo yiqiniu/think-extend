@@ -10,6 +10,7 @@
     }
   ],
   "require": {
+    "php": ">=7.1.0",
     "yiqiniu/framework": "^6.0.*.dev",
     "guzzlehttp/guzzle": "~6.0",
     "ext-json": "*",

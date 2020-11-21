@@ -1,6 +1,7 @@
 <?php
 
 namespace {%namespace%};
+{%use%}
 
 /**
  * {%comment%}

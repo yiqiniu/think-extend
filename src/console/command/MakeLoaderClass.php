@@ -33,7 +33,7 @@ class MakeLoaderClass extends Command
             ->addOption('suffix', '-s', Option::VALUE_REQUIRED, "Class Suffix")
             //->addOption('namespace', '-ns', Option::VALUE_REQUIRED, "Class NameSpace")
             ->addOption('module', '-m', Option::VALUE_REQUIRED, "specified Module name")
-            ->setDescription('Generate Specifies the folder proxy class');
+            ->setDescription('Generate Specifies the folder loader class');
     }
 
     protected function execute(Input $input, Output $output)
@@ -126,6 +126,7 @@ class MakeLoaderClass extends Command
                     $class_suffix,
                 ], $template_content));
         }
+        $output->writeln('<info>' . $this->type . ':' . 'All  Loader Class created successfully.</info>');
 
     }
 

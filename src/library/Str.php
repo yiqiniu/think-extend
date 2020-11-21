@@ -16,7 +16,7 @@ class Str
      * 生成Guid主键
      * @return Boolean
      */
-    static public function keyGen()
+    public function keyGen()
     {
         return str_replace('-', '', substr(static::uuid(), 1, -1));
     }
@@ -26,7 +26,7 @@ class Str
      * @access public
      * @return string
      */
-    static public function uuid()
+    public function uuid()
     {
         $charid = md5(uniqid(mt_rand(), true));
         $hyphen = chr(45);// "-"
@@ -46,7 +46,7 @@ class Str
      * @param $string
      * @return string
      */
-    public static function convert_utf8($string)
+    public function convert_utf8($string)
     {
         if (strlen(utf8_decode($string)) == strlen($string)) {
             // $string is not UTF-8
@@ -62,7 +62,7 @@ class Str
      * @param string $string 字符串
      * @return Boolean
      */
-    static public function isUtf8($str)
+    public function isUtf8($str)
     {
         $c = 0;
         $b = 0;
@@ -101,7 +101,7 @@ class Str
      * @param string $suffix 截断显示字符
      * @return string
      */
-    static public function substr($str, $start = 0, $length, $charset = "utf-8", $suffix = true)
+    public function substr($str, $start = 0, $length, $charset = "utf-8", $suffix = true)
     {
         if (function_exists("mb_substr"))
             $slice = mb_substr($str, $start, $length, $charset);
@@ -118,7 +118,7 @@ class Str
         return $suffix ? $slice . '...' : $slice;
     }
 
-    public static function randdate()
+    public function randdate()
     {
         return date("YmdHis") . static::randString(6, 1);
     }
@@ -132,7 +132,7 @@ class Str
      * @param string $addChars 额外字符
      * @return string
      */
-    static public function randString($len = 6, $type = '', $addChars = '')
+    public function randString($len = 6, $type = '', $addChars = '')
     {
         $str = '';
         switch ($type) {
@@ -175,7 +175,7 @@ class Str
      * 字符串格式化
      * @return mixed|void
      */
-    public static function format()
+    public function format()
     {
         $args = func_get_args();
 
@@ -199,7 +199,7 @@ class Str
      * @param $str
      * @return mixed
      */
-    public static function encode($str)
+    public function encode($str)
     {
         return str_replace([' ', '\r\n', '\n'], ['&nbsp;', '<br/>', '<br/>'], $str);
     }
@@ -213,7 +213,7 @@ class Str
      * @date 2013-08-13 19:30
      * @update 2014-10-10 10:10
      */
-    public static function base64_en($string = '', $skey = 'yiqiniu')
+    public function base64_en($string = '', $skey = 'yiqiniu')
     {
         $strArr = str_split(base64_encode($string));
         $strCount = count($strArr);
@@ -231,7 +231,7 @@ class Str
      * @date 2013-08-13 19:30
      * @update 2014-10-10 10:10
      */
-    public static function base64_de($string = '', $skey = 'yiqiniu')
+    public function base64_de($string = '', $skey = 'yiqiniu')
     {
         $strArr = str_split(str_replace(array('O0O0O', 'o000o', 'oo00o'), array('=', '+', '/'), $string), 2);
         $strCount = count($strArr);
@@ -244,7 +244,7 @@ class Str
      * @param $s
      * @return bool|string
      */
-    public static function get_first($s)
+    public function get_first($s)
     {
         $ascii = ord($s[0]);
         if ($ascii > 0xE0) {
@@ -291,7 +291,7 @@ class Str
         return false;
     }
 
-    public static function utf8_to_gb2312($s)
+    public function utf8_to_gb2312($s)
     {
         return iconv('UTF-8', 'GB2312//IGNORE', $s);
     }
@@ -301,14 +301,14 @@ class Str
      * @param bool $isfirst
      * @return string
      */
-    public static function get_pinyin($s, $isfirst = false)
+    public function get_pinyin($s, $isfirst = false)
     {
         return self::to(self::utf8_to_gb2312($s), $isfirst);
     }
 
     // 字符串必须为GB2312编码
 
-    public static function to($s, $isfirst = false)
+    public function to($s, $isfirst = false)
     {
         $res = '';
         $len = strlen($s);
@@ -343,9 +343,9 @@ class Str
     }
 
 
-    public static function pinyin_array()
+    public function pinyin_array()
     {
-        static $py_arr;
+        $py_arr;
         if (isset($py_arr)) return $py_arr;
 
         $k = 'a|ai|an|ang|ao|ba|bai|ban|bang|bao|bei|ben|beng|bi|bian|biao|bie|bin|bing|bo|bu|ca|cai|can|cang|cao|ce|ceng|cha|chai|chan|chang|chao|che|chen|cheng|chi|chong|chou|chu|chuai|chuan|chuang|chui|chun|chuo|ci|cong|cou|cu|cuan|cui|cun|cuo|da|dai|dan|dang|dao|de|deng|di|dian|diao|die|ding|diu|dong|dou|du|duan|dui|dun|duo|e|en|er|fa|fan|fang|fei|fen|feng|fo|fou|fu|ga|gai|gan|gang|gao|ge|gei|gen|geng|gong|gou|gu|gua|guai|guan|guang|gui|gun|guo|ha|hai|han|hang|hao|he|hei|hen|heng|hong|hou|hu|hua|huai|huan|huang|hui|hun|huo|ji|jia|jian|jiang|jiao|jie|jin|jing|jiong|jiu|ju|juan|jue|jun|ka|kai|kan|kang|kao|ke|ken|keng|kong|kou|ku|kua|kuai|kuan|kuang|kui|kun|kuo|la|lai|lan|lang|lao|le|lei|leng|li|lia|lian|liang|liao|lie|lin|ling|liu|long|lou|lu|lv|luan|lue|lun|luo|ma|mai|man|mang|mao|me|mei|men|meng|mi|mian|miao|mie|min|ming|miu|mo|mou|mu|na|nai|nan|nang|nao|ne|nei|nen|neng|ni|nian|niang|niao|nie|nin|ning|niu|nong|nu|nv|nuan|nue|nuo|o|ou|pa|pai|pan|pang|pao|pei|pen|peng|pi|pian|piao|pie|pin|ping|po|pu|qi|qia|qian|qiang|qiao|qie|qin|qing|qiong|qiu|qu|quan|que|qun|ran|rang|rao|re|ren|reng|ri|rong|rou|ru|ruan|rui|run|ruo|sa|sai|san|sang|sao|se|sen|seng|sha|shai|shan|shang|shao|she|shen|sheng|shi|shou|shu|shua|shuai|shuan|shuang|shui|shun|shuo|si|song|sou|su|suan|sui|sun|suo|ta|tai|tan|tang|tao|te|teng|ti|tian|tiao|tie|ting|tong|tou|tu|tuan|tui|tun|tuo|wa|wai|wan|wang|wei|wen|weng|wo|wu|xi|xia|xian|xiang|xiao|xie|xin|xing|xiong|xiu|xu|xuan|xue|xun|ya|yan|yang|yao|ye|yi|yin|ying|yo|yong|you|yu|yuan|yue|yun|za|zai|zan|zang|zao|ze|zei|zen|zeng|zha|zhai|zhan|zhang|zhao|zhe|zhen|zheng|zhi|zhong|zhou|zhu|zhua|zhuai|zhuan|zhuang|zhui|zhun|zhuo|zi|zong|zou|zu|zuan|zui|zun|zuo';
@@ -363,7 +363,7 @@ class Str
      * @param $name
      * @return string
      */
-    public static function unicode_encode($name)
+    public function unicode_encode($name)
     {
         $name = iconv('UTF-8', 'UCS-2', $name);
         $len = strlen($name);
@@ -387,7 +387,7 @@ class Str
      * @param $name
      * @return string
      */
-    public static function unicode_decode($name)
+    public function unicode_decode($name)
     {
         // 转换编码，将Unicode编码转换成可以浏览的utf-8编码
         $pattern = '/([\w]+)|(\\\u([\w]{4}))/i';

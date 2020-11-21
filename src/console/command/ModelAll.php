@@ -9,7 +9,8 @@ use think\console\command\Make;
 use think\console\Input;
 use think\console\input\Option;
 use think\console\Output;
-use yiqiniu\facade\Db;
+use think\facade\Db;
+
 
 /**
  * Class ModelAll
@@ -106,6 +107,8 @@ class ModelAll extends Make
         }
         $dirname .= DIRECTORY_SEPARATOR;
 
+        // model 保存的目录
+        $basemodel_path = $dirname;
         // 保存到子目录中
         if (!empty($subDir)) {
             $dirname .= strtolower($subDir) . DIRECTORY_SEPARATOR;
@@ -116,19 +119,22 @@ class ModelAll extends Make
                 throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirname));
             }
         }
+        $basemodel_namespce = $this->getNamespace2($name, '');
         // 获取生成空间的名称
         $namespace = $this->getNamespace2($name, $subDir);
 
         // 判断 是否有基本BaseModel
 
+
         $stubs = $this->getStub();
+
         // 写入基本的Model类
-        $basemodel_file = $dirname . $this->baseModel . '.php';
+        $basemodel_file = $basemodel_path . $this->baseModel . '.php';
 
         if (!file_exists($basemodel_file)) {
             $basemodel = file_get_contents($stubs['basemodel']);
             file_put_contents($basemodel_file, str_replace(['{%namespace%}', '{%className%}',], [
-                $namespace,
+                $basemodel_namespce,
                 $this->baseModel,
             ], $basemodel));
         }
@@ -142,6 +148,8 @@ class ModelAll extends Make
         //强制更新
         $force_update = $input->getOption('force');
 
+        //
+        $use_content = empty($subDir)?'':'use '.($basemodel_namespce.'\\'.$this->baseModel.';');
         foreach ($tablelist as $k => $table) {
             // 处理关键字
             if (!empty($keyword) && stripos($table['name'], $keyword) === false) {
@@ -150,15 +158,19 @@ class ModelAll extends Make
             $class_name = $this->parseName(substr($table['name'], $prefix_len), 1, true);
             // 如果是表名是class的改为ClassModel
 
-            $tablename = '';
+            /*$tablename = '';
             if (in_array($class_name, $this->keywords)) {
                 $class_name .= 'Model';
                 $tablename = "protected \$name='" . substr($table['name'], $prefix_len) . "';";
-            }
+            }*/
+
+            $tablename = "protected \$name='" . substr($table['name'], $prefix_len) . "';";
+
             $model_file = $dirname . $class_name . 'Model.php';
             if (!file_exists($model_file) || $force_update) {
-                file_put_contents($model_file, str_replace(['{%namespace%}', '{%className%}', '{%comment%}', '{%tablename%}'], [
+                file_put_contents($model_file, str_replace(['{%namespace%}', '{%use%}','{%className%}', '{%comment%}', '{%tablename%}'], [
                     $namespace,
+                    $use_content,
                     $class_name,
                     $table['comment'],
                     $tablename
