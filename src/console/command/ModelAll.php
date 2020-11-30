@@ -164,7 +164,7 @@ class ModelAll extends Make
                 $tablename = "protected \$name='" . substr($table['name'], $prefix_len) . "';";
             }*/
 
-            $tablename = "protected \$name='" . substr($table['name'], $prefix_len) . "';";
+            $tablename = substr($table['name'], $prefix_len);
 
             $model_file = $dirname . $class_name . 'Model.php';
             if (!file_exists($model_file) || $force_update) {
@@ -210,6 +210,8 @@ class ModelAll extends Make
         }
         return $this->stubs;
     }
+
+
 
 
     /**

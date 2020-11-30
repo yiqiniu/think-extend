@@ -5,9 +5,9 @@ namespace {%namespace%};
 use yiqiniu\db\YqnModel;
 
 /**
+ * 基础Model
  * Class {%className%}
  * @package {%namespace%}
- * 基础Model
  */
 
 class BaseModel extends YqnModel

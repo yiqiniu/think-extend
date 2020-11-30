@@ -44,6 +44,10 @@ class YqnModel
      */
     protected $name = '';
 
+
+    //表字段
+    private $fields=[];
+
     /**
      * @var string
      * 表的主键

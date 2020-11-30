@@ -126,7 +126,7 @@ class MakeLoaderClass extends Command
                     $class_suffix,
                 ], $template_content));
         }
-        $output->writeln('<info>' . $this->type . ':' . 'All  Loader Class created successfully.</info>');
+        $output->writeln('<info>All Loader Class created successfully.</info>');
 
     }
 
@@ -212,7 +212,8 @@ class MakeLoaderClass extends Command
             $doc = $ref->getDocComment();
 
             if (!empty($doc)) {
-                $doc = explode(PHP_EOL, str_replace(['/**' . PHP_EOL, ' * ', ' */'], '', $ref->getDocComment()))[0];
+                $doc =explode("\n",str_replace(['/**' . PHP_EOL,'/**', ' * ', ' */',""], '', $ref->getDocComment()));
+                $doc = empty($doc[0])?($doc[1]??''):$doc[0];
             }
             $result['doc'] = $doc;
             return $result;

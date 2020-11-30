@@ -24,6 +24,14 @@ class Service extends \think\Service
 
     public function boot(Route $route)
     {
+
+        // 开启刷新token的请求
+        if($this->app->config->get('extend.refresh_token',0)){
+            $route->post('refresh_token', function () {
+                api_refresh_token();
+            });
+        }
+        // 生成命令
         $this->commands([
             'yqn:server'=>Socket::class,
             'yqn:model' =>ModelAll::class,

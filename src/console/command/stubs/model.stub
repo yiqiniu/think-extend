@@ -12,5 +12,6 @@ namespace {%namespace%};
 class {%className%}Model extends BaseModel
 {
     //
-    {%tablename%}
+    protected $name = '{%tablename%}';
+
 }
