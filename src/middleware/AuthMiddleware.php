@@ -1,11 +1,11 @@
 <?php
 
-namespace yiqiniu\middleware;
+namespace yiqiniu\extend\middleware;
 
 
 use think\Exception;
 use think\facade\Config;
-use yiqiniu\facade\Token;
+use yiqiniu\extend\facade\Token;
 
 
 class AuthMiddleware

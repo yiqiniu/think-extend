@@ -9,7 +9,7 @@
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
 
-namespace yiqiniu\library;
+namespace yiqiniu\extend\library;
 /**
  * 日期时间操作类
  * @category   ORG

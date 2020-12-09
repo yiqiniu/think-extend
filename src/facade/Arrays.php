@@ -1,12 +1,12 @@
 <?php
 
 
-namespace yiqiniu\facade;
+namespace yiqiniu\extend\facade;
 
 use think\Facade;
 
 /**
- * @see \yiqiniu\library\Arrays
+ * @see \yiqiniu\extend\library\Arrays
  * @method mixed removeEmpty( $arr, $trim = '1') static     从数组中删除空白的元素（包括只有空白字符的元素）
  * @method mixed removeKey( $array, $keys) static     去掉指定的项
  * @method mixed toTree( $arr, $key_node_id, $key_parent_id = 'parent_id', $key_childrens = 'children', $treeIndex =  '', $refs =  '') static     将一个平面的二维数组按照指定的字段转换为树状结构
@@ -41,6 +41,6 @@ class Arrays extends Facade
      */
     protected static function getFacadeClass()
     {
-        return 'yiqiniu\library\Arrays';
+        return 'yiqiniu\extend\library\Arrays';
     }
 }

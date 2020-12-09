@@ -8,7 +8,7 @@
 // +----------------------------------------------------------------------
 // | Author: liu21st <liu21st@gmail.com>
 // +----------------------------------------------------------------------
-namespace yiqiniu\library;
+namespace yiqiniu\extend\library;
 
 
 use Firebase\JWT\BeforeValidException;

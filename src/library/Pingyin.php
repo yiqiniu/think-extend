@@ -1,9 +1,9 @@
 <?php
 
-namespace yiqiniu\library;
+namespace yiqiniu\extend\library;
 
 
-namespace yiqiniu\library;
+namespace yiqiniu\extend\library;
 
 class Pingyin
 {

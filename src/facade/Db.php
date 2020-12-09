@@ -1,7 +1,7 @@
 <?php
 
 
-namespace yiqiniu\facade;
+namespace yiqiniu\extend\facade;
 
 use Generator;
 use think\db\Connection;

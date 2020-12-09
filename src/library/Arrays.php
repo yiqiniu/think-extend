@@ -1,7 +1,7 @@
 <?php
 
 
-namespace yiqiniu\library;
+namespace yiqiniu\extend\library;
 
 /**
  * 数组助手类

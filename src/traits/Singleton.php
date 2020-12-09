@@ -6,7 +6,7 @@
  * Time: 17:26
  */
 
-namespace yiqiniu\traits;
+namespace yiqiniu\extend\traits;
 
 /**
  * 单例模式

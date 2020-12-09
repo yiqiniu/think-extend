@@ -13,7 +13,7 @@
 // | github 仓库地址 ：https://github.com/zoujingli/ThinkLibrary
 // +----------------------------------------------------------------------
 
-namespace yiqiniu\library;
+namespace yiqiniu\extend\library;
 
 use CURLFile;
 use think\Exception;

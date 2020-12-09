@@ -1,12 +1,12 @@
 <?php
 
 
-namespace yiqiniu\traits;
+namespace yiqiniu\extend\traits;
 
 
 use think\Cache;
 use think\Exception;
-use yiqiniu\library\Redis;
+use yiqiniu\extend\library\Redis;
 
 /**
  * 缓存处理类

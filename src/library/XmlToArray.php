@@ -1,7 +1,7 @@
 <?php
 
 
-namespace yiqiniu\library;
+namespace yiqiniu\extend\library;
 
 
 use DOMAttr;

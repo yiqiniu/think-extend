@@ -1,7 +1,7 @@
 <?php
 
 
-namespace yiqiniu\filesystem;
+namespace yiqiniu\extend\filesystem;
 
 
 use League\Flysystem\AdapterInterface;

@@ -1,7 +1,7 @@
 <?php
 
 
-namespace yiqiniu\swoole;
+namespace yiqiniu\extend\swoole;
 
 
 use Swoole\Server as SocketServer;

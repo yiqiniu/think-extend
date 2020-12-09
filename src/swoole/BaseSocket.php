@@ -9,7 +9,7 @@
 // | Author: yunwuxin <448901948@qq.com>
 // +----------------------------------------------------------------------
 
-namespace yiqiniu\parent\swoole;
+namespace yiqiniu\extend\parent\swoole;
 
 use Swoole\Runtime;
 use Swoole\Server;

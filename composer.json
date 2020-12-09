@@ -22,7 +22,7 @@
   },
   "autoload": {
     "psr-4": {
-      "yiqiniu\\": "src"
+      "yiqiniu\\extend\\": "src"
     },
     "files": [
       "src/const.php",

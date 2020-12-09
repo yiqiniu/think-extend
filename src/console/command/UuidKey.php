@@ -1,13 +1,13 @@
 <?php
 
 
-namespace yiqiniu\console\command;
+namespace yiqiniu\extend\console\command;
 
 use think\console\Command;
 use think\console\Input;
 use think\console\input\Option;
 use think\console\Output;
-use yiqiniu\library\Str;
+use yiqiniu\extend\library\Str;
 
 class UuidKey extends Command
 {

@@ -1,7 +1,7 @@
 <?php
 
 
-namespace yiqiniu\db;
+namespace yiqiniu\extend\db;
 
 
 use think\Exception;

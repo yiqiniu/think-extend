@@ -6,13 +6,13 @@
  * Time: 上午10:59
  */
 
-namespace yiqiniu\facade;
+namespace yiqiniu\extend\facade;
 
 use think\Facade;
 
 /**
- * @see \com\Redis
- * @mixin \com\Redis
+ * @see \yiqiniu\extend\library\Redis
+ * @mixin \yiqiniu\extend\library\Redis
  * @method mixed init(array $options = [], $force = false) static 自动初始化缓存
  * @method bool has($name) static 判断缓存是否存在
  * @method mixed get($name, $default = false) static 获取缓存
@@ -32,6 +32,6 @@ class Redis extends Facade
 
     protected static function getFacadeClass()
     {
-        return 'yiqiniu\library\Redis';
+        return 'yiqiniu\extend\library\Redis';
     }
 }

@@ -1,11 +1,11 @@
 <?php
 
 
-namespace yiqiniu\facade;
+namespace yiqiniu\extend\facade;
 
 
-use yiqiniu\library\{Arrays, Date, Http, Logger, Pingyin, Redis, Str, Token};
-use yiqiniu\traits\BaseLoader;
+use yiqiniu\extend\library\{Arrays, Date, Http, Logger, Pingyin, Redis, Str, Token};
+use yiqiniu\extend\traits\BaseLoader;
 
 /**
  * 扩展函数库

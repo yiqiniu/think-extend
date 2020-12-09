@@ -1,12 +1,12 @@
 <?php
 
 
-namespace yiqiniu\facade;
+namespace yiqiniu\extend\facade;
 
 use think\Facade;
 
 /**
- * @see yiqiniu\library\Token
+ * @see yiqiniu\extend\library\Token
  * @method mixed getToken($data, $is_exp = '1', $time = '86400') static @param $data 加密的数据
  * @method mixed verifyToken($jwt, $app) static 验证签名
  * @method mixed verificationOther($jwt, $data) static @param $jwt
@@ -20,6 +20,6 @@ class Token extends Facade
      */
     protected static function getFacadeClass()
     {
-        return 'yiqiniu\library\Token';
+        return 'yiqiniu\extend\library\Token';
     }
 }

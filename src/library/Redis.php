@@ -6,7 +6,7 @@
  * Time: 下午2:44
  */
 
-namespace yiqiniu\library;
+namespace yiqiniu\extend\library;
 
 
 class Redis

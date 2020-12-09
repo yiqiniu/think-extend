@@ -1,6 +1,6 @@
 <?php
 
-namespace yiqiniu\console\command;
+namespace yiqiniu\extend\console\command;
 
 
 use think\console\command\Make;

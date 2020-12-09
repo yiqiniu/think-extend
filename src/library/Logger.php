@@ -6,7 +6,7 @@
  * Time: 17:50
  */
 
-namespace yiqiniu\library;
+namespace yiqiniu\extend\library;
 
 
 class Logger

@@ -1,6 +1,6 @@
 <?php
 
-namespace yiqiniu\traits;
+namespace yiqiniu\extend\traits;
 
 trait MergeParams
 {

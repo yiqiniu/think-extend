@@ -1,5 +1,5 @@
 <?php
-namespace yiqiniu\traits;
+namespace yiqiniu\extend\traits;
 
 
 use think\Exception;

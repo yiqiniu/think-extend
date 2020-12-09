@@ -1,7 +1,7 @@
 <?php
 
 
-namespace yiqiniu\facade;
+namespace yiqiniu\extend\facade;
 
 use think\Facade;
 
@@ -39,6 +39,6 @@ class Date extends Facade
      */
     protected static function getFacadeClass()
     {
-        return 'yiqiniu\library\Date';
+        return 'yiqiniu\extend\library\Date';
     }
 }

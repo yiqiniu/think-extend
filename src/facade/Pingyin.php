@@ -1,7 +1,7 @@
 <?php
 
 
-namespace yiqiniu\facade;
+namespace yiqiniu\extend\facade;
 
 
 use think\Facade;
@@ -10,13 +10,13 @@ use think\Facade;
 /**
  * Class Pingyin
  * @package yiqiniu\facade
- * @method \yiqiniu\library\Pingyin str2py(string $s, bool $first = true, string $separate = '') 把汉字转换成拼音
+ * @method \yiqiniu\extend\library\Pingyin str2py(string $s, bool $first = true, string $separate = '') 把汉字转换成拼音
  */
 class Pingyin extends Facade
 {
     protected static function getFacadeClass()
     {
-        return 'yiqiniu\library\Pingyin';
+        return 'yiqiniu\extend\library\Pingyin';
     }
 
 
