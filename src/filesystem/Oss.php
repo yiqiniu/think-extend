@@ -11,22 +11,27 @@ use Xxtime\Flysystem\Aliyun\OssAdapter;
 class Oss extends Driver
 {
 
-    protected $config=[
-        'accessId'       => '',
-        'accessSecret'   => '',
-        'bucket'         => '',
-        'endpoint'       => '',
-        'timeout'        => 3600,
+    protected $config = [
+        'accessId' => '',
+        'accessSecret' => '',
+        'bucket' => '',
+        'endpoint' => '',
+        'timeout' => 3600,
         'connectTimeout' => 10,
-        'isCName'        => false,
-        'token'          => '',
+        'isCName' => false,
+        'token' => '',
     ];
+
+    /**
+     * @return AdapterInterface
+     * @throws \Exception
+     */
     protected function createAdapter(): AdapterInterface
     {
         try {
             return new OssAdapter($this->config);
         } catch (\Exception $e) {
-            return null;
+            throw $e;
         }
     }
 }

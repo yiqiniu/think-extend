@@ -20,12 +20,16 @@ class Ftp extends Driver
         'root' => '/',
     ];
 
+    /**
+     * @return AdapterInterface|null
+     * @throws \Exception
+     */
     protected function createAdapter(): AdapterInterface
     {
         try {
             return new \League\Flysystem\Adapter\Ftp($this->config);
         } catch (\Exception $e) {
-            return null;
+            throw  $e;
         }
     }
 }

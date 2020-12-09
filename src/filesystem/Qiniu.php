@@ -23,6 +23,9 @@ class Qiniu extends  Driver
         'cdnhost' => '',
     ];
 
+    /**
+     * @return AdapterInterface
+     */
     protected function createAdapter(): AdapterInterface
     {
         return new QiNiuOssAdapter($this->config['accesskey'],
