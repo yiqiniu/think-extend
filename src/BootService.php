@@ -1,25 +1,25 @@
 <?php
 
 
-namespace yiqiniu;
+namespace yiqiniu\extend;
 
 
 use think\Route;
-use yiqiniu\console\command\MakeFacade;
-use yiqiniu\console\command\MakeLoaderClass;
-use yiqiniu\console\command\ModelAll;
-use yiqiniu\console\command\Socket;
-use yiqiniu\console\command\UuidKey;
-use yiqiniu\console\command\ValidateAll;
-use yiqiniu\filesystem\Oss;
-use yiqiniu\filesystem\Qiniu;
+use yiqiniu\extend\console\command\MakeFacade;
+use yiqiniu\extend\console\command\MakeLoaderClass;
+use yiqiniu\extend\console\command\ModelAll;
+use yiqiniu\extend\console\command\Socket;
+use yiqiniu\extend\console\command\UuidKey;
+use yiqiniu\extend\console\command\ValidateAll;
+/*use yiqiniu\extend\filesystem\Oss;
+use yiqiniu\extend\filesystem\Qiniu;*/
 
-class Service extends \think\Service
+class BootService extends \think\Service
 {
     public function register()
     {
-        $this->app->bind('qiniu', Qiniu::class);
-        $this->app->bind('oss', Oss::class);
+    /*    $this->app->bind('qiniu', Qiniu::class);
+        $this->app->bind('oss', Oss::class);*/
     }
 
     public function boot(Route $route)

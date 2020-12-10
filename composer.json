@@ -32,7 +32,7 @@
   "extra": {
     "think": {
       "services": [
-        "yiqiniu\\Service"
+        "yiqiniu\\extend\\BootService"
       ]
     },
     "config": {
