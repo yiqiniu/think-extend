@@ -6,8 +6,8 @@ namespace yiqiniu\extend\db;
 
 use think\Exception;
 use think\facade\Db;
-use yiqiniu\traits\MergeParams;
-use yiqiniu\traits\ReidsCache;
+use yiqiniu\extend\traits\MergeParams;
+use yiqiniu\extend\traits\ReidsCache;
 
 
 /**
