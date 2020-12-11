@@ -4,8 +4,8 @@
 namespace app\swoole\service;
 
 
-use yiqiniu\facade\Logger;
-use yiqiniu\swoole\BaseSocket;
+use yiqiniu\extend\facade\Logger;
+use yiqiniu\extend\swoole\BaseSocket;
 
 
 class {%className%}Service extends BaseSocket

@@ -4,9 +4,9 @@ use Gouguoyin\EasyHttp\Http;
 use Gouguoyin\EasyHttp\RequestException;
 use Gouguoyin\EasyHttp\Response;
 use think\exception\HttpResponseException;
-use yiqiniu\exception\ApiException;
-use yiqiniu\facade\Logger;
-use yiqiniu\facade\Token;
+use yiqiniu\extend\exception\ApiException;
+use yiqiniu\extend\facade\Logger;
+use yiqiniu\extend\facade\Token;
 
 
 if (!function_exists('api_exception')) {

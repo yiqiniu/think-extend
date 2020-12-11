@@ -61,6 +61,8 @@ class ModelAll extends Make
         // 子目录
         $subDir = strtolower($input->getOption('subdirectory'));
 
+        $db_connect = null;
+
         $this->app = App::getInstance();
         $default = $this->app->config->get('database.default', '');
         if (!empty($default)) {
@@ -74,12 +76,14 @@ class ModelAll extends Make
             return;
         }
         $this->is_postgressql = stripos($connect['type'], 'pgsql') !== false;
+        $db_connect = Db::connect($default ?: $connect);
         if ($this->is_postgressql != false) {
 
             if ($schema = trim($input->getOption('schema'))) {
                 $this->schema_name = $schema;
             }
-            $tablelist = Db::connect($default ?: $connect)->table('pg_class')
+
+            $tablelist = $db_connect->table('pg_class')
                 ->field(['relname as name', "cast(obj_description(relfilenode,'pg_class') as varchar) as comment"])
                 ->where('relname', 'in', function ($query) {
                     $query->table('pg_tables')
@@ -90,7 +94,7 @@ class ModelAll extends Make
         } else {
 
 
-            $tablelist = Db::connect($default ?: $connect)->table('information_schema.tables')
+            $tablelist = $db_connect->table('information_schema.tables')
                 ->where('table_schema', $connect['database'])
                 ->field('table_name as name,table_comment as comment')
                 ->select();
@@ -164,16 +168,18 @@ class ModelAll extends Make
                 $tablename = "protected \$name='" . substr($table['name'], $prefix_len) . "';";
             }*/
 
+            $field = $this->getTablesField($db_connect,$table['name']);
             $tablename = substr($table['name'], $prefix_len);
 
             $model_file = $dirname . $class_name . 'Model.php';
             if (!file_exists($model_file) || $force_update) {
-                file_put_contents($model_file, str_replace(['{%namespace%}', '{%use%}','{%className%}', '{%comment%}', '{%tablename%}'], [
+                file_put_contents($model_file, str_replace(['{%namespace%}', '{%use%}','{%className%}', '{%comment%}', '{%tablename%}','{%fields%}'], [
                     $namespace,
                     $use_content,
                     $class_name,
                     $table['comment'],
-                    $tablename
+                    $tablename,
+                    $field
                 ], $model_stub));
             }
 
@@ -234,4 +240,56 @@ class ModelAll extends Make
 
         return strtolower(trim(preg_replace("/[A-Z]/", "_\\0", $name), "_"));
     }
+
+    /**
+     * 获取表的字段
+     */
+    public function getTablesField($db, $tablename)
+    {
+
+        if ($this->is_postgressql) {
+            $sql = "SELECT
+            a.attname as field,
+            format_type(a.atttypid,a.atttypmod) as type,
+            col_description(a.attrelid,a.attnum) as comment
+            FROM pg_class as c,pg_attribute as a
+            where c.relname = '$tablename' and a.attrelid = c.oid and a.attnum>0;";
+
+        } else {
+
+            $sql = 'SHOW FULL COLUMNS FROM	' . $tablename;
+
+        }
+        $fields = $db->query($sql);
+
+        $format =  "'%s'=>'%s',\t\t// %s";
+
+        $retdata=[];
+        //生成字段
+        foreach ($fields as $field) {
+
+            $field_type = 'string';
+
+            //字数类型
+            if(stripos($field['type'],'int')!==false){
+                $field_type='int';
+            }
+            //日期
+            if(stripos($field['type'],'time')!==false || stripos($field['type'],'date')!==false){
+                $field_type='datetime';
+            }
+            //浮点
+            if(stripos($field['type'],'float')!==false || stripos($field['type'],'numeric')!==false ||
+                stripos($field['type'],'decimal')!==false){
+                $field_type='float';
+            }
+            //json 格式
+            if(stripos($field['type'],'json')!==false){
+                $field_type='json';
+            }
+            $retdata[]=sprintf($format,$field['field'],$field_type,$field['comment']);
+        }
+        return implode("\r\n\t\t",$retdata);
+    }
+
 }

@@ -1,7 +1,7 @@
 <?php
 
 namespace {%namespace%};
-use yiqiniu\traits\BaseLoader;
+use yiqiniu\extend\traits\BaseLoader;
 
 {%use%}
 

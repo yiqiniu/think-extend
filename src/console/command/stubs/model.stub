@@ -14,4 +14,8 @@ class {%className%}Model extends BaseModel
     //
     protected $name = '{%tablename%}';
 
+    // 设置字段信息
+    protected $schema = [
+        {%fields%}
+    ];
 }

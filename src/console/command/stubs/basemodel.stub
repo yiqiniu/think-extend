@@ -2,7 +2,7 @@
 
 namespace {%namespace%};
 
-use yiqiniu\db\YqnModel;
+use yiqiniu\extend\db\YqnModel;
 
 /**
  * 基础Model

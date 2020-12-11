@@ -5,7 +5,7 @@ namespace app\swoole\command;
 
 use think\console\Command;
 use think\console\input\Argument;
-use yiqiniu\swoole\CommandService;
+use yiqiniu\extend\swoole\CommandService;
 
 
 class {%className%}Command extends CommandService
