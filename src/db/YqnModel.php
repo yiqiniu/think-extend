@@ -217,13 +217,10 @@ class YqnModel
      */
     public function column($where = null, $field = '', $keyfield = '')
     {
-        if ($where === null) {
-            if (empty($this->options['where'])) {
-                return $this->db()->column($field, $keyfield);
-            }
-            $where = $this->options['where'];
+        if (!empty($where)) {
+            $this->options['where'] = $where;
         }
-        return $this->db()->where($where)->column($field, $keyfield);
+        return $this->makeOptionDb()->column($field, $keyfield);
     }
 
     /**

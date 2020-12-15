@@ -2,10 +2,23 @@
 
 namespace yiqiniu\extend\traits;
 
+use yiqiniu\extend\db\YqnModel;
+
 trait MergeParams
 {
 
 
+    /**
+     * 设置条件
+     * @param array $option
+     * @return YqnModel
+     */
+    public function setOption(array $option): self
+    {
+        $this->removeOption();
+        $this->options = $option;
+        return $this;
+    }
     /**
      * 移除上次的设置
      * @return $this
