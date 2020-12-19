@@ -1,6 +1,6 @@
 <?php
 
-$api_config = [
+return [
 
     //不需要认证的操作
     'no_auth' => [
@@ -30,21 +30,13 @@ $api_config = [
         'expire' => 0,
     ],
 
-    'log'=>[
+    'log' => [
         //自动删除
-        'auto_delete'=>true,
+        'auto_delete' => true,
         //保留7天
-        'reserve_days'=>7
-    ]
+        'reserve_days' => 7
+    ],
 
+    // 开启refresh_token
+    'refresh_token' => 0,
 ];
-
-/**
- *  开启刷新token功能
- */
-\think\facade\Route::post('api/refresh_token', function () {
-    api_refresh_token();
-});
-
-
-return $api_config;

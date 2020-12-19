@@ -11,9 +11,9 @@ use yiqiniu\extend\facade\Token;
 
 if (!function_exists('api_exception')) {
     /**
-     * @param int    $code 异常代码
+     * @param int $code 异常代码
      * @param string $msg 异常信息
-     * @throws \yiqiniu\exception\ApiException
+     * @throws \yiqiniu\extend\exception\ApiException
      */
     function api_exception($code, $msg)
     {
@@ -35,12 +35,11 @@ if (!function_exists('api_result')) {
     /** 输出返回结果
      * @param        $code
      * @param string $msg
-     * @param array  $data
+     * @param array $data
      * @throws HttpResponseException
      */
     function api_result($code, $msg = '', $data = [])
     {
-
         if ($code instanceof Exception) {
             if (method_exists($code, 'getData')) {
                 $data = $code->getData();
@@ -49,7 +48,10 @@ if (!function_exists('api_result')) {
                 }
                 $result_code = $code->getCode();
             } else {
-                Logger::exception($code);
+                // 不是手工抛出的异常时，记录错误的修改
+                if (!($code instanceof ApiException)) {
+                    Logger::exception($code);
+                }
                 $result_code = API_ERROR;
             }
             $msg = $code->getMessage();
@@ -61,6 +63,10 @@ if (!function_exists('api_result')) {
             $code = API_SUCCESS;
         } else if (is_array($code)) {
             $data = $code;
+            $code = API_SUCCESS;
+        } else if (is_array($msg)) {
+            $data = $msg;
+            $msg = '';
             $code = API_SUCCESS;
         } else if (empty($msg) && is_string($code)) {
             $msg = $code;
@@ -102,12 +108,12 @@ if (!function_exists('api_refresh_token')) {
 if (!function_exists('httpRequest')) {
     /**
      * 发送HTTP请求方法，目前只支持CURL发送请求
-     * @param string            $url 请求URL
-     * @param array             $params 请求参数
-     * @param string            $method 请求方法GET/POST
+     * @param string $url 请求URL
+     * @param array $params 请求参数
+     * @param string $method 请求方法GET/POST
      * @param bool|array|string $upload
-     * @param string            $type 返回格式
-     * @param array             $header
+     * @param string $type 返回格式
+     * @param array $header
      * @return array  $data   响应数据
      * @throws \Exception
      * @throws \yiqiniu\exception\ApiException
@@ -180,14 +186,14 @@ if (!function_exists('httpRequest')) {
 if (!function_exists('httpRequest_async')) {
     /**
      * 发送HTTP请求方法，目前只支持CURL发送请求
-     * @param string            $url 请求URL
-     * @param callable          $success 成功后的回调
-     * @param callable          $fail 失败后回调
-     * @param array             $params 请求参数
-     * @param string            $method 请求方法GET/POST
+     * @param string $url 请求URL
+     * @param callable $success 成功后的回调
+     * @param callable $fail 失败后回调
+     * @param array $params 请求参数
+     * @param string $method 请求方法GET/POST
      * @param bool|array|string $upload
-     * @param string            $type 返回格式
-     * @param array             $header
+     * @param string $type 返回格式
+     * @param array $header
      * @throws \Exception
      * @throws \yiqiniu\exception\ApiException
      */
@@ -272,12 +278,11 @@ if (!function_exists('httpRequest_async')) {
 if (!function_exists('writelog')) {
     /**
      * 写入日志
-     * @param        $content  mixed  要写入的日志
-     * @param bool   $append
+     * @param mixed $content 要写入的日志
+     * @param bool $append 追加 true   false 不追加
      * @param string $prefix
      * @param string $dir
      * @param string $format
-     * @append  boole|string  追加 true   false 不追加
      *
      */
     function writelog($content, $append = true, $prefix = '', $dir = 'logs', $format = 'array')
@@ -293,15 +298,15 @@ if (!function_exists('arrayToXml')) {
      * 数组转XML
      * @param        $array
      * @param string $root 根节点
-     * @param bool   $replaceSpaces 处理键名 默认情况下，数组键名中的所有空格都将转换为下划线。如果要不使用此功能，可将第三个参数设置为false
-     * @param null   $xmlEncoding XML指定编码
+     * @param bool $replaceSpaces 处理键名 默认情况下，数组键名中的所有空格都将转换为下划线。如果要不使用此功能，可将第三个参数设置为false
+     * @param null $xmlEncoding XML指定编码
      * @param string $xmlVersion XML版本号
-     * @param array  $domProperties 指定DOM属性
+     * @param array $domProperties 指定DOM属性
      * @return string
      */
     function arrayToXml($array, $root = '', $replaceSpaces = true, $xmlEncoding = null, $xmlVersion = '1.0', array $domProperties = [])
     {
-        return yiqiniu\library\ArrayToXml::convert($array, $root, $replaceSpaces, $xmlEncoding, $xmlVersion, $domProperties);
+        return yiqiniu\extend\library\ArrayToXml::convert($array, $root, $replaceSpaces, $xmlEncoding, $xmlVersion, $domProperties);
     }
 }
 
@@ -315,7 +320,7 @@ if (!function_exists('xmlToArray')) {
      */
     function xmlToArray($xml)
     {
-        return \yiqiniu\library\XmlToArray::convert($xml);
+        return \yiqiniu\extend\library\XmlToArray::convert($xml);
     }
 }
 
@@ -323,9 +328,9 @@ if (!function_exists('parse_name')) {
     /**
      * 字符串命名风格转换
      * type 0 将Java风格转换为C的风格 1 将C风格转换为Java的风格
-     * @param string $name    字符串
-     * @param int    $type    转换类型
-     * @param bool   $ucfirst 首字母是否大写（驼峰规则）
+     * @param string $name 字符串
+     * @param int $type 转换类型
+     * @param bool $ucfirst 首字母是否大写（驼峰规则）
      * @return string
      */
     function parse_name(string $name, int $type = 0, bool $ucfirst = true): string

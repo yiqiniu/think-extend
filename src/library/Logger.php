@@ -11,8 +11,6 @@ namespace yiqiniu\extend\library;
 
 class Logger
 {
-
-
     private $config = [
         //自动删除
         'auto_delete' => false,
@@ -68,15 +66,15 @@ class Logger
 
         $exception_log = $this->config['save_path'] . '/exception/' . date('Ym') . '/' . ($controller === '' ? '' : $controller . '_') . date('Ymd') . '.log';
 
-        $this->writeLogger($exception_log, print_r($logdata, true));
+        $this->writeLogger($exception_log, $logdata);
         return true;
 
     }
 
     /**
      * 把内容写入到日志中
-     * @param $filename string 要写入文件名
-     * @param $strdata string/array 要写入的数据 数组或对象与print_r转换为字符串
+     * @param string $filename 要写入文件名
+     * @param string|array $strdata 要写入的数据 数组或对象与print_r转换为字符串
      * @return bool   true 保存成功,  false 保存失败
      */
 
@@ -135,6 +133,7 @@ class Logger
         $this->config['format'] = $format;
         $dir = empty($dir) ? 'logs' : $dir;
         $logfile = $this->config['save_path'] . '/' . $dir . '/' . date('Ym') . '/' . ($prefix !== '' ? $prefix . '_' : '') . date('Ymd') . '.log';
+
         return $this->writeLogger($logfile, $content, $append);
     }
 

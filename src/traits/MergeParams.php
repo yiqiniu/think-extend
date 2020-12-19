@@ -2,30 +2,36 @@
 
 namespace yiqiniu\extend\traits;
 
-use yiqiniu\extend\db\YqnModel;
-
 trait MergeParams
 {
 
-
     /**
-     * 设置条件
-     * @param array $option
-     * @return YqnModel
+     * 当前查询参数
+     * @var array
      */
-    public function setOption(array $option): self
-    {
-        $this->removeOption();
-        $this->options = $option;
-        return $this;
-    }
+    protected $options = [];
+
+
     /**
      * 移除上次的设置
      * @return $this
      */
-    public function removeOption(): self
+    public function removeOption()
     {
         $this->options = [];
+        return $this;
+    }
+
+    /**
+     * 批量设置参数
+     * @param array $option 要设置的参数
+     * @return $this
+     */
+    public function setOption($option)
+    {
+        if (!empty($option)) {
+            $this->options = array_merge($this->options, $option);
+        }
         return $this;
     }
 
@@ -35,7 +41,7 @@ trait MergeParams
      * @param mixed $length 查询数量
      * @return $this
      */
-    public function limit($length = null): self
+    public function limit($length = null)
     {
         $this->options['limit'] = $length;
         return $this;
@@ -44,10 +50,11 @@ trait MergeParams
     /**
      * 指定排序 order('id','desc') 或者 order(['id'=>'desc','create_time'=>'desc'])
      * @access public
+     * @param string|array $field 排序字段
      * @param string $order 排序
      * @return $this
      */
-    public function order($order): self
+    public function order($order)
     {
         if (!empty($order)) {
             $this->options['order'] = $order;
@@ -60,25 +67,13 @@ trait MergeParams
      * 指定查询字段 支持字段排除和指定数据表
      * @access public
      * @param mixed $field
+     * @param boolean $except 是否排除
      * @return $this
      */
-    public function field($field): self
+    public function field($field)
     {
         if (!empty($field)) {
             $this->options['field'] = $field;
-        }
-        return $this;
-    }
-
-    /**
-     * 返指定字段进行having操作
-     * @param $field
-     * @return $this
-     */
-    public function having($field): self
-    {
-        if (!empty($field)) {
-            $this->options['having'] = $field;
         }
         return $this;
     }
@@ -88,7 +83,7 @@ trait MergeParams
      * @param $field
      * @return $this
      */
-    public function group($field): self
+    public function group($field)
     {
         if (!empty($field)) {
             $this->options['group'] = $field;
@@ -111,13 +106,17 @@ trait MergeParams
     }
 
     /**
-     * 每页大小
+     * 页数
+     * @param int $page
      * @param int $pageSize
      * @return $this
      */
-    public function pageSize(int $pageSize): self
+    public function setpage(int $page, int $pageSize)
     {
-        $this->options['pagesize'] = $pageSize;
+        if (!empty($page)) {
+            $this->options['page'] = $page;
+            $this->options['pagesize'] = $pageSize;
+        }
         return $this;
     }
 
@@ -129,7 +128,7 @@ trait MergeParams
      * @param mixed $condition 查询条件
      * @return $this
      */
-    public function where($field, $op = null, $condition = null): self
+    public function where($field, $op = null, $condition = null)
     {
 
         if (!isset($this->options['where'])) {
@@ -138,15 +137,10 @@ trait MergeParams
         $where = &$this->options['where'];
         if (is_array($field)) {
             foreach ($field as $key => $value) {
-                if (is_array($value)) {
-                    $value = count($value) === 1 ? ['=', current($value)] : $value;
-                } else {
-                    $value = ['=', $value];
-                }
-                $where[$key] = $value;
+                $where[$key] = is_array($value) ? $value : ['=', $value];
             }
         } else {
-            if ($condition === null) {
+            if ($condition == null) {
                 $condition = $op;
                 $op = '=';
             }
@@ -161,7 +155,7 @@ trait MergeParams
      * @param $condition
      * @return $this
      */
-    public function whereIn($field, $condition): self
+    public function whereIn($field, $condition)
     {
 
         if (!isset($this->options['where'])) {
@@ -197,9 +191,9 @@ trait MergeParams
      * @param mixed $condition 查询条件
      * @return $this
      */
-    public function whereOr($field, $op, $condition = null): self
+    public function whereOr($field, $op, $condition = null)
     {
-        if ($condition === null) {
+        if ($condition == null) {
             $condition = $op;
             $op = '=';
         }
@@ -210,111 +204,4 @@ trait MergeParams
         $this->options['whereOr'] = $whereOr;
         return $this;
     }
-
-    /**
-     * 按时间搜索
-     * @param      $field
-     * @param      $op
-     * @param null $range
-     * @return $this
-     */
-    public function whereTime($field, $op, $range = null): self
-    {
-
-        if (!isset($this->options['where'])) {
-            $this->options['where'] = [];
-        }
-        $where = &$this->options['where'];
-        $where[$field] = [$op, $range];
-        return $this;
-    }
-
-    /**
-     * 缓存
-     * @param bool $key
-     * @param null $expire
-     * @param null $tag
-     * @return $this
-     */
-    public function cache(bool $key = true, $expire = null, $tag = null): self
-    {
-        $this->options['cache'] = ['key' => $key, 'expire' => $expire, 'tag' => $tag];
-        return $this;
-    }
-
-    /**
-     * 按列获取
-     * @param string $field
-     * @param string $keyfield
-     * @return array|false|string
-     */
-    public function rawColumn($field = '', $keyfield = '')
-    {
-        return $this->column($this->options['where'] ?? null, $field, $keyfield);
-    }
-
-    /**
-     * 获取 指定的值
-     * @param $field
-     * @return int|mixed|string|null
-     */
-    public function rawValue($field)
-    {
-        if (empty($this->options['where'])) {
-            return false;
-        }
-        return $this->value($this->options['where'], $field);
-    }
-
-
-    /**
-     * 插入记录
-     * @param array $data 更新的数据
-     * @return int|string
-     */
-    public function rawUpdate($data)
-    {
-        // 没有数据，没有条件时，直接返回false
-        if (empty($this->options['where']) || empty($data)) {
-            return false;
-        }
-        return $this->update($this->options['where'], $data);
-    }
-
-    /**
-     * 删除记录
-     * @return int
-     */
-    public function rawDelete()
-    {
-        if (empty($this->options['where'])) {
-            return false;
-        }
-        return $this->delete($this->options['where']);
-    }
-
-    /**
-     * 生成调用的参数
-     * @param $arguments
-     * @return array
-     */
-    protected function makeParams($arguments): array
-    {
-        if (empty($this->options)) {
-            $params = $arguments;
-        } else {
-            $params = $this->options;
-            if (!empty($arguments)) {
-                foreach ($arguments as $id => $k) {
-                    if (is_array($k)) {
-                        $params[key($k)] = current($k);
-                    } else {
-                        $params[$id] = $k;
-                    }
-                }
-            }
-        }
-        return $params;
-    }
-
 }
