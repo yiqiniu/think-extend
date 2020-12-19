@@ -116,7 +116,7 @@ class YqnModel
         $db = $this->db();
 
         if (!empty($this->options['where'])) {
-            $db = $db->where($this->options['where']);
+            $db = $db->where($this->parseWhere($this->options['where']));
         }
         if (!empty($this->options['order'])) {
             $db = $db->order($this->options['order']);
@@ -287,6 +287,55 @@ class YqnModel
         } catch (Exception $e) {
             throw $e;
         }
+    }
+
+
+    /**
+     * 处理where条件
+     * @param array $where_array
+     * @return array
+     */
+    protected function parseWhere($where = [])
+    {
+
+        //将全部条件整理到where 数组中
+        foreach ($where as $field => $values) {
+            if (empty($values) && $values !== '0') {
+                continue;
+            }
+            if (is_array($values)) {
+                [$op, $value] = $values;
+                $where[$field] = [$field, $op, $value];
+            } else {
+                $where[$field] = [$field, '=', $values];
+            }
+        }
+
+        //产生查询条件
+        foreach ($where as $field => &$values) {
+            // 如果自定义函数的话,使用自定义处理
+            $field_function = 'where' . ucfirst($field);
+            if (method_exists($this, $field_function)) {
+                if ($function_result = $this->$field_function($field, is_array($values) ? end($values) : $values)) {
+                    $where[$field] = $function_result;
+                } else {
+                    unset($where[$field]);
+                }
+            } else {
+                //处理第一个不是字段的问题
+                if ($field != current($values)) {
+                    if (is_array($values)) {
+                        [$op, $value] = $values;
+                        $where[$field] = [$field, $op, $value];
+                    } else {
+                        $where[$field] = [$field, '=', $values];
+                    }
+                }
+
+            }
+        }
+
+        return array_values($where);
     }
 
     public function __call($method, $arguments)
