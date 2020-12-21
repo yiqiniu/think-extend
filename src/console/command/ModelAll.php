@@ -267,7 +267,9 @@ class ModelAll extends Make
         $retdata=[];
         //生成字段
         foreach ($fields as $field) {
-
+            $field['field'] = $field['Field'] ?? $field['field'];
+            $field['type'] = $field['Type'] ?? $field['type'];
+            $field['notnull'] = $field['Null'] ?? $field['notnull'];
             $field_type = 'string';
 
             //字数类型

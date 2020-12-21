@@ -7,13 +7,17 @@ namespace {%namespace%};
 use think\Validate;
 
 /**
+ * {%comment%}
  * Class {%className%}
  * @package {%namespace%}
- * {%comment%}
  */
 
 class {%className%}Valid extends Validate
 {
+
+    /**
+        {%fields%}
+    */
 
     /**
     *  验证规则

@@ -204,4 +204,55 @@ trait MergeParams
         $this->options['whereOr'] = $whereOr;
         return $this;
     }
+
+    /**
+     * 按列获取
+     * @param string $field
+     * @param string $keyfield
+     * @return array|false|string
+     */
+    public function rawColumn($field = '', $keyfield = '')
+    {
+        return $this->column($this->options['where'] ?? null, $field, $keyfield);
+    }
+
+    /**
+     * 获取 指定的值
+     * @param $field
+     * @return int|mixed|string|null
+     */
+    public function rawValue($field)
+    {
+        if (empty($this->options['where'])) {
+            return false;
+        }
+        return $this->value($this->options['where'], $field);
+    }
+
+
+    /**
+     * 插入记录
+     * @param array $data 更新的数据
+     * @return int|string
+     */
+    public function rawUpdate($data)
+    {
+        // 没有数据，没有条件时，直接返回false
+        if (empty($this->options['where']) || empty($data)) {
+            return false;
+        }
+        return $this->update($this->options['where'], $data);
+    }
+
+    /**
+     * 删除记录
+     * @return int
+     */
+    public function rawDelete()
+    {
+        if (empty($this->options['where'])) {
+            return false;
+        }
+        return $this->delete($this->options['where']);
+    }
 }

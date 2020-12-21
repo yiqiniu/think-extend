@@ -82,7 +82,7 @@ class ValidateAll extends Make
             return;
         }
 
-
+        echo
         $table_name = trim($input->getOption('table'));
         if (!empty($table_name)) {
             // 生成所有的类
@@ -94,6 +94,7 @@ class ValidateAll extends Make
 
         $map_tablename = [];
         $this->is_postgressql = stripos($connect['type'], 'pgsql') !== false;
+        $db_connect = Db::connect($default ?: $connect);
         if ($this->is_postgressql != false) {
             if (!empty($table_name)) {
                 $map_tablename = ['tablename' => $table_name];
@@ -101,7 +102,7 @@ class ValidateAll extends Make
             if (!empty($schema)) {
                 $this->schema_name = $schema;
             }
-            $tablelist = Db::connect($default ?: $connect)->table('pg_class')
+            $tablelist = $db_connect->table('pg_class')
                 ->field(['relname as name', "cast(obj_description(relfilenode,'pg_class') as varchar) as comment"])
                 ->where('relname', 'in', function ($query) use ($map_tablename) {
                     $query->table('pg_tables')
@@ -113,7 +114,7 @@ class ValidateAll extends Make
             if (!empty($table_name)) {
                 $map_tablename = ['table_name' => $table_name];
             }
-            $tablelist = Db::connect($default ?: $connect)->table('information_schema.tables')
+            $tablelist = $db_connect->table('information_schema.tables')
                 ->where('table_schema', $connect['database'])
                 ->where($map_tablename)
                 ->field('table_name as name,table_comment as comment')
@@ -139,7 +140,7 @@ class ValidateAll extends Make
             throw new \RuntimeException(sprintf('Directory "%s" was not created', $dirname));
         }
         // 获取生成空间的名称
-        $namespace = $this->getNamespace2($module,$subDir);
+        $namespace = $this->getNamespace2($module, $subDir);
 
         // 判断 是否有基本BaseModel
 
@@ -153,7 +154,6 @@ class ValidateAll extends Make
 
         // table 类用于获取字段
         $dbs = Db::connect($default ?: $connect);
-
 
         foreach ($tablelist as $k => $table) {
 
@@ -170,12 +170,13 @@ class ValidateAll extends Make
             $filedinfo = $this->getTablesField($dbs, $table['name']);
             $model_file = $dirname . $class_name . 'Valid.php';
             if (!file_exists($model_file) || $force_update) {
-                file_put_contents($model_file, str_replace(['{%namespace%}', '{%className%}', '{%comment%}', '{%rule%}', '{%message%}'], [
+                file_put_contents($model_file, str_replace(['{%namespace%}', '{%className%}', '{%comment%}', '{%rule%}', '{%message%}','{%fields%}'], [
                     $namespace,
                     $class_name,
                     $table['comment'],
                     $filedinfo['rule'],
                     $filedinfo['message'],
+                    $filedinfo['fields'],
                 ], $model_stub));
             }
 
@@ -215,36 +216,77 @@ class ValidateAll extends Make
 
         // 生成模板
         $templates = [
-            'rule' => "'%s'=>'require',\r\n\t\t",
-            'message' => "'%s.require'=>'%s不能为空',\r\n\t\t",
+            'rule' => "'%s'=>'%s',\r\n\t\t",
+            'message' => "'%s.%s'=>'%s',\r\n\t\t",
+            'default' => "'%s'=>'%s',\r\n\t\t",
+            'fields' =>"*  字段：'%s'，\t类型：'%s', \t是否为空：%s, \t说明：%s \r\n\t",
         ];
         //返回值
         $retdata = [
             'rule' => '',
-            'message' => ''
+            'message' => '',
+            'fields'=>''
         ];
         //忽略ID
+        //$ignorefield = ['id', 'bz', 'memo', 'createdate', 'createtime', 'remark', 'status', 'zt'];
         $ignorefield = ['id', 'bz', 'memo', 'createdate', 'createtime', 'remark', 'status', 'zt'];
         //生成字段
-        foreach ($fields as $data) {
-            if ($data['Type'] == '-')
+        $no_valid_field=[
+            'rule'=>'',
+            'message'=>'',
+        ];
+
+
+        foreach ($fields as $field) {
+
+            $field['field'] = $field['field'] ?? $field['Field'];
+            $field['type'] = $field['type'] ?? $field['Type'];
+            $field['notnull'] = $field['notnull'] ?? $field['Null'];
+            $comment = $field['comment'] ?? ($field['Comment']??'');
+            $field['comment'] = explode(' ',$comment)[0];
+            $retdata['fields'].=sprintf($templates['fields'],$field['field'],$field['type'],$field['notnull'],$comment);
+
+            $field_val = strtolower($field['field']);
+            if ($field['type'] === '-'){
                 continue;
-
-            $field = $data['Field'];
-            if (in_array($field, $ignorefield))
-                continue;
-
-            if (!$this->allfield) {
-
-                if (($this->is_postgressql && !((bool)('' !== $data['notnull']))) ||
-                    (!$this->is_postgressql && $data['Null'] === 'NO')) {
-
-                    continue;
-                }
             }
-            $retdata['rule'] .= sprintf($templates['rule'], $field);
-            $retdata['message'] .= sprintf($templates['message'], $field, !empty($data['Comment']) ? $data['Comment'] : $field);
+            $rule_list=[];
+            $msg_list=[];
+            if ((is_bool($field['notnull']) && $field['notnull']) ||
+                stripos($field['notnull'], 'true') ||
+                stripos($field['notnull'], 'yes')
+            ){
+                $rule_list[]='require';
+                $msg_list[]=sprintf($templates['message'],$field['field'],'require',$field['comment'].'不能为空');
+
+            }
+            //字数类型
+            if (stripos($field['type'], 'int') !== false) {
+                $rule_list[]='number';
+                $msg_list[]=sprintf($templates['message'],$field['field'],'number',$field['comment'].'只能为数字类型');
+            }
+            //日期
+            if (stripos($field['type'], 'time') !== false || stripos($field['type'], 'date') !== false) {
+                $rule_list[]='date';
+                $msg_list[]=sprintf($templates['message'],$field['field'],'date',$field['comment'].'只能为日期类型');
+            }
+            //浮点
+            if (stripos($field['type'], 'float') !== false || stripos($field['type'], 'numeric') !== false ||
+                stripos($field['type'], 'decimal') !== false) {
+                $rule_list[]='float';
+                $msg_list[]=sprintf($templates['message'],$field['field'],'float',$field['comment'].'只能为数字可带小数点');
+            }
+
+            if(!empty($rule_list)){
+                $retdata['rule'] .= sprintf($templates['rule'],$field['field'],(implode('|',array_unique($rule_list))));
+                $retdata['message'] .= implode("",array_unique($msg_list));
+            }else{
+                $no_valid_field['rule'] .= '//'.sprintf($templates['rule'],$field['field'],(implode('|',array_unique($rule_list))));
+                $no_valid_field['message'] .='//'.sprintf($templates['default'],$field['field'],$field['comment']);
+            }
         }
+     /*   $retdata['rule'].=$no_valid_field['rule'];
+        $retdata['message'].=$no_valid_field['message'];*/
         return $retdata;
     }
 
@@ -279,9 +321,9 @@ class ValidateAll extends Make
      * 字符串命名风格转换
      * type 0 将Java风格转换为C的风格 1 将C风格转换为Java的风格
      * @access public
-     * @param string  $name 字符串
+     * @param string $name 字符串
      * @param integer $type 转换类型
-     * @param bool    $ucfirst 首字母是否大写（驼峰规则）
+     * @param bool $ucfirst 首字母是否大写（驼峰规则）
      * @return string
      */
     public static function parseName($name = null, $type = 0, $ucfirst = true)

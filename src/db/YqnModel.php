@@ -14,8 +14,6 @@ use yiqiniu\extend\traits\ReidsCache;
  * 基本Query的常用函数
  * Class BaseModel
  * @package yiqiniu\db
- * @method  insert(array $data = [], bool $getLastInsID = false)
- * @method  insertGetId(array $data)
  * @method  insertAll(array $dataSet = [], int $limit = 0)
  * @method  selectInsert(array $fields, string $table)
  * @method  cache($key = true, $expire = null, $tag = null)
@@ -46,7 +44,7 @@ class YqnModel
 
 
     //表字段
-    private $fields=[];
+    private $fields = [];
 
     /**
      * @var string
@@ -172,7 +170,13 @@ class YqnModel
      */
     public function select($conditions = [])
     {
-        return $this->makeOptionDb($conditions)->select();
+        $result = $this->makeOptionDb($conditions)->select();
+
+        // 使用select_after 处理数据
+        if ($result !== null && method_exists($this, 'select_after')) {
+            $this->select_after($result);
+        }
+        return $result;
     }
 
     /**
@@ -185,7 +189,14 @@ class YqnModel
      */
     public function find($conditions = [])
     {
-        return $this->makeOptionDb($conditions)->find();
+        $result = $this->makeOptionDb($conditions)->find();
+
+        // 使用select_after 处理数据
+        if ($result !== null && method_exists($this, 'select_after')) {
+            $this->select_after([$result]);
+            $result = current($result);
+        }
+        return $result;
     }
 
 
@@ -204,7 +215,14 @@ class YqnModel
         if ($this->options["page_size"] > 100) {
             $this->options["page_size"] = self::DEFAULT_PAGE_SIZE;
         }
-        return $db->paginate($this->options["page_size"])->toArray();
+        $result =  $db->paginate($this->options["page_size"])->toArray();
+
+        // 使用select_after 处理数据
+        if ($result['data'] !== null && method_exists($this, 'select_after')) {
+            $this->select_after($result['data']);
+        }
+        return $result;
+
     }
 
 
@@ -234,6 +252,43 @@ class YqnModel
         return $this->db()->where($where)->value($field);
     }
 
+
+    /**
+     *
+     * @param array $data
+     * @param bool $getLastInsID
+     * @return int|string
+     * @throws Exception
+     */
+    public function insert(array $data = [], bool $getLastInsID = false)
+    {
+        try {
+            if (method_exists($this, 'insert_before')) {
+                $this->insert_before($data);
+            }
+            $result = $this->db()->insert($data, $getLastInsID);
+            if (method_exists($this, 'insert_after')) {
+                $this->insert_after($data, $result);
+            }
+            return $result;
+        } catch (Exception $e) {
+            throw $e;
+        }
+    }
+
+
+    /**
+     * 插入记录并获取插入的ID
+     * @param array $data
+     * @return int|string
+     * @throws Exception
+     */
+    public function insertGetId(array $data)
+    {
+        return $this->insert($data, true);
+    }
+
+
     /**
      * 插入记录
      * @param array $where
@@ -243,11 +298,25 @@ class YqnModel
      */
     public function update($where, $data)
     {
-        //修改数据错误
-        if (empty($data)) {
-            return false;
+        try {
+            if (empty($data)) {
+                api_exception(API_ERROR, '修改数据不能为空');
+            }
+            if (method_exists($this, 'update_before')) {
+                $this->update_before($where, $data);
+            }
+
+            $result = $this->db()->where($where)->update($data);
+
+            if (method_exists($this, 'update_after')) {
+                $this->update_after($where, $data, $result);
+            }
+            return $result;
+        } catch (Exception $e) {
+            throw $e;
         }
-        return $this->db()->where($where)->update($data);
+
+
     }
 
     /**
@@ -258,9 +327,25 @@ class YqnModel
      */
     public function delete($where)
     {
-        return $this->db()->where($where)->delete();
-    }
+        try {
+            if (empty($data)) {
+                api_exception(API_ERROR, '修改数据不能为空');
+            }
+            if (method_exists($this, 'delete_before')) {
+                $this->delete_before($where);
+            }
 
+            $result = $this->db()->where($where)->delete();
+
+            if (method_exists($this, 'delete_after')) {
+                $this->delete_after($where, $result);
+            }
+            return $result;
+        } catch (Exception $e) {
+            throw $e;
+        }
+
+    }
 
     /**
      * 执行存储过程
