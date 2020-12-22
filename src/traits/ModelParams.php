@@ -2,7 +2,7 @@
 
 namespace yiqiniu\extend\traits;
 
-trait MergeParams
+trait ModelParams
 {
 
     /**
@@ -197,12 +197,30 @@ trait MergeParams
             $condition = $op;
             $op = '=';
         }
-        if (isset($this->options['whereOr'])) {
-            $whereOr = &$this->options['whereOr'];
+        if (isset($this->options['where_or'])) {
+            $whereOr = &$this->options['where_or'];
         }
         $whereOr[$field] = [$op, $condition];
-        $this->options['whereOr'] = $whereOr;
+        $this->options['where_or'] = $whereOr;
         return $this;
+    }
+
+
+    /**
+     * 生成Where条件的Db
+     * @return \think\facade\Db
+     */
+    protected function makeWhereDb()
+    {
+
+        $db = $this->db();
+        if (!empty($this->options['where'])) {
+            $db = $db->where($this->parseWhere($this->options['where']));
+        }
+        if (!empty($this->options['where_or'])) {
+            $db = $db->where($this->parseWhere($this->options['where_or']));
+        }
+        return $db;
     }
 
     /**
@@ -213,7 +231,7 @@ trait MergeParams
      */
     public function rawColumn($field = '', $keyfield = '')
     {
-        return $this->column($this->options['where'] ?? null, $field, $keyfield);
+        return $this->column(null, $field, $keyfield);
     }
 
     /**
@@ -223,10 +241,7 @@ trait MergeParams
      */
     public function rawValue($field)
     {
-        if (empty($this->options['where'])) {
-            return false;
-        }
-        return $this->value($this->options['where'], $field);
+        return $this->value(null, $field);
     }
 
 
@@ -237,11 +252,8 @@ trait MergeParams
      */
     public function rawUpdate($data)
     {
-        // 没有数据，没有条件时，直接返回false
-        if (empty($this->options['where']) || empty($data)) {
-            return false;
-        }
-        return $this->update($this->options['where'], $data);
+
+        return $this->update(null, $data);
     }
 
     /**
@@ -250,9 +262,7 @@ trait MergeParams
      */
     public function rawDelete()
     {
-        if (empty($this->options['where'])) {
-            return false;
-        }
-        return $this->delete($this->options['where']);
+
+        return $this->delete(null);
     }
 }

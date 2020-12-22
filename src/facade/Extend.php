@@ -23,7 +23,7 @@ use yiqiniu\extend\traits\BaseLoader;
 class Extend extends BaseLoader
 {
     // 命名空间
-    protected $_namespace = 'yiqiniu\library';
+    protected $_namespace = 'yiqiniu\extend\library';
     // 类前缀
     protected $_prefix = '';
     // 类后缀

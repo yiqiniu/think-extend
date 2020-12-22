@@ -6,7 +6,7 @@ namespace yiqiniu\extend\db;
 
 use think\Exception;
 use think\facade\Db;
-use yiqiniu\extend\traits\MergeParams;
+use yiqiniu\extend\traits\ModelParams;
 use yiqiniu\extend\traits\ReidsCache;
 
 
@@ -28,7 +28,7 @@ class YqnModel
 {
 
     use ReidsCache;
-    use MergeParams;
+    use ModelParams;
 
     //默认缓存时间
     const DEFAULT_CACHE_TIME = 300;
@@ -61,6 +61,7 @@ class YqnModel
     // 默认
     private $def = [
         'where' => [],
+        'where_or' => [],
         'order' => '',
         'group' => '',
         'field' => '',
@@ -97,6 +98,27 @@ class YqnModel
         return Db::name(empty($name) ? $this->name : $name);
     }
 
+    /**
+     * 生成Where条件的Db
+     * @return \think\facade\Db
+     */
+    protected function makeWhereDb($conditions = [])
+    {
+        if (!empty($conditions)) {
+            $this->options = array_merge($this->def, $conditions);
+        } else {
+            $this->options = array_merge($this->def, $this->options);
+        }
+        $db = $this->db();
+        if (!empty($this->options['where'])) {
+            $db = $db->where($this->parseWhere($this->options['where']));
+        }
+        if (!empty($this->options['where_or'])) {
+            $db = $db->whereOr($this->parseWhere($this->options['where_or']));
+        }
+        return $db;
+    }
+
 
     /**
      * 根据查询条件生成DB对象
@@ -111,11 +133,8 @@ class YqnModel
             $this->options = array_merge($this->def, $this->options);
         }
 
-        $db = $this->db();
+        $db = $this->makeWhereDb();
 
-        if (!empty($this->options['where'])) {
-            $db = $db->where($this->parseWhere($this->options['where']));
-        }
         if (!empty($this->options['order'])) {
             $db = $db->order($this->options['order']);
         }
@@ -167,15 +186,15 @@ class YqnModel
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
+     * @throws Exception
      */
     public function select($conditions = [])
     {
         $result = $this->makeOptionDb($conditions)->select();
 
         // 使用select_after 处理数据
-        if ($result !== null && method_exists($this, 'select_after')) {
-            $this->select_after($result);
-        }
+        $this->triggerEvent('select_after', [&$result]);
+
         return $result;
     }
 
@@ -186,15 +205,20 @@ class YqnModel
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
+     * @throws Exception
      */
     public function find($conditions = [])
     {
         $result = $this->makeOptionDb($conditions)->find();
 
+
         // 使用select_after 处理数据
-        if ($result !== null && method_exists($this, 'select_after')) {
-            $this->select_after([$result]);
-            $result = current($result);
+        if ($result !== null) {
+
+            $list = [$result];
+            $this->triggerEvent('select_after', [&$list]);
+            $result = current($list);
+            unset($list);
         }
         return $result;
     }
@@ -205,6 +229,7 @@ class YqnModel
      * @param array $options
      * @return array
      * @throws \think\db\exception\DbException
+     * @throws Exception
      */
     public function page($options = []): array
     {
@@ -215,12 +240,11 @@ class YqnModel
         if ($this->options["page_size"] > 100) {
             $this->options["page_size"] = self::DEFAULT_PAGE_SIZE;
         }
-        $result =  $db->paginate($this->options["page_size"])->toArray();
+        $result = $db->paginate($this->options["page_size"]);
 
         // 使用select_after 处理数据
-        if ($result['data'] !== null && method_exists($this, 'select_after')) {
-            $this->select_after($result['data']);
-        }
+        $this->triggerEvent('select_after', [&$result['data']]);
+
         return $result;
 
     }
@@ -238,7 +262,7 @@ class YqnModel
         if (!empty($where)) {
             $this->options['where'] = $where;
         }
-        return $this->makeOptionDb()->column($field, $keyfield);
+        return $this->makeWhereDb()->column($field, $keyfield);
     }
 
     /**
@@ -249,7 +273,10 @@ class YqnModel
      */
     public function value($where, $field)
     {
-        return $this->db()->where($where)->value($field);
+        if (!empty($where)) {
+            $this->options['where'] = $where;
+        }
+        return $this->makeWhereDb()->value($field);
     }
 
 
@@ -263,13 +290,11 @@ class YqnModel
     public function insert(array $data = [], bool $getLastInsID = false)
     {
         try {
-            if (method_exists($this, 'insert_before')) {
-                $this->insert_before($data);
-            }
+            $this->triggerEvent('insert_before', [&$data]);
+
             $result = $this->db()->insert($data, $getLastInsID);
-            if (method_exists($this, 'insert_after')) {
-                $this->insert_after($data, $result);
-            }
+
+            $this->triggerEvent('insert_after', [$data, $result]);
             return $result;
         } catch (Exception $e) {
             throw $e;
@@ -302,15 +327,16 @@ class YqnModel
             if (empty($data)) {
                 api_exception(API_ERROR, '修改数据不能为空');
             }
-            if (method_exists($this, 'update_before')) {
-                $this->update_before($where, $data);
+            if (!empty($where)) {
+                $this->options['where'] = $where;
             }
 
-            $result = $this->db()->where($where)->update($data);
+            $this->triggerEvent('update_before', [&$where, &$data]);
 
-            if (method_exists($this, 'update_after')) {
-                $this->update_after($where, $data, $result);
-            }
+            $result = $this->makeWhereDb()->update($data);
+
+            $this->triggerEvent('update_after', [$where, $data, $result]);
+
             return $result;
         } catch (Exception $e) {
             throw $e;
@@ -325,21 +351,17 @@ class YqnModel
      * @return int
      * @throws \think\db\exception\DbException
      */
-    public function delete($where)
+    public function delete($where = [])
     {
         try {
-            if (empty($data)) {
-                api_exception(API_ERROR, '修改数据不能为空');
+            if (!empty($where)) {
+                $this->options['where'] = $where;
             }
-            if (method_exists($this, 'delete_before')) {
-                $this->delete_before($where);
-            }
+            $this->triggerEvent('delete_before', [&$where]);
 
-            $result = $this->db()->where($where)->delete();
+            $result = $this->makeWhereDb()->delete();
 
-            if (method_exists($this, 'delete_after')) {
-                $this->delete_after($where, $result);
-            }
+            $this->triggerEvent('delete_after', [$where, $result]);
             return $result;
         } catch (Exception $e) {
             throw $e;
@@ -348,32 +370,21 @@ class YqnModel
     }
 
     /**
-     * 执行存储过程
-     * @param       $sql string       要执行sql
-     * @param mixed ...$argv 参数
-     * @return mixed            返回执行的结果
-     * @throws Exception
+     * 触发事件
+     * @param string $event
+     * @param array $params
+     * @return mixed
      */
-    public function exec_procedure($sql, ...$argv)
+    protected function triggerEvent(string $event, array $params)
     {
         try {
-            $sql = vsprintf($sql, $argv);
-            // 取返回值变量
-            $pos = strpos($sql, '@');
-            $param = '';
-            if ($pos !== false) {
-                $param = substr($sql, $pos, strpos($sql, ')') - strlen($sql));
+            if (method_exists($this, $event)) {
+                return call_user_func_array([$this, $event], $params);
             }
-            $bret = $this->db()->execute($sql);
-            if ($bret !== false && !empty($param)) {
-                $bret = $this->db()->query('select ' . $param)[0];
-            }
-            return $bret;
         } catch (Exception $e) {
             throw $e;
         }
     }
-
 
     /**
      * 处理where条件
