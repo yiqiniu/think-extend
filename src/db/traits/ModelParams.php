@@ -227,7 +227,7 @@ trait ModelParams
      */
     public function whereDate(string $field, string $op, $range = null)
     {
-        $this->options['where_date'][] = [$field, $op, $range];
+        $this->options['where_time'][] = [$field, $op, $range];
         return $this;
     }
 

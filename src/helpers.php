@@ -42,10 +42,7 @@ if (!function_exists('api_result')) {
     {
         if ($code instanceof Exception) {
             if (method_exists($code, 'getData')) {
-                $data = $code->getData();
-                if (isset($data['data'])) {
-                    $data = $data['data'];
-                }
+                $data = $data['data'] ?? [];
                 $result_code = $code->getCode();
             } else {
                 // 不是手工抛出的异常时，记录错误的修改
