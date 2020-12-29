@@ -6,8 +6,8 @@ namespace yiqiniu\extend\db;
 
 use think\Exception;
 use think\facade\Db;
-use yiqiniu\extend\traits\ModelParams;
-use yiqiniu\extend\traits\ReidsCache;
+use yiqiniu\extend\db\traits\ModelParams;
+use yiqiniu\extend\db\traits\ReidsCache;
 
 
 /**
@@ -113,9 +113,24 @@ class YqnModel
         if (!empty($this->options['where'])) {
             $db = $db->where($this->parseWhere($this->options['where']));
         }
+        // 解析 or
         if (!empty($this->options['where_or'])) {
             $db = $db->whereOr($this->parseWhere($this->options['where_or']));
         }
+        // 解析原始条件
+        if (!empty($this->options['where_string'])) {
+            foreach ($this->options['where_string'] as $subsql) {
+                $db = $db->whereRaw($subsql);
+            }
+        }
+        // 解析日期类型
+        if (!empty($this->options['where_time'])) {
+            foreach ($this->options['where_time'] as $date) {
+                [$field, $op, $range] = $date;
+                $db = $db->whereTime($field, $op, $range);
+            }
+        }
+
         return $db;
     }
 
@@ -367,6 +382,11 @@ class YqnModel
             throw $e;
         }
 
+    }
+
+    public function getPk()
+    {
+        return $this->pk;
     }
 
     /**

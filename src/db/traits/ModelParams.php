@@ -1,6 +1,6 @@
 <?php
 
-namespace yiqiniu\extend\traits;
+namespace yiqiniu\extend\db\traits;
 
 trait ModelParams
 {
@@ -205,6 +205,31 @@ trait ModelParams
         return $this;
     }
 
+    /**
+     * 字符串我要的不多
+     * @param string $sql
+     * @return $this
+     */
+    public function whereRaw(string $sql)
+    {
+        $this->options['where_string'][] = $sql;
+        return $this;
+    }
+
+
+    /**
+     * 查询日期或者时间
+     * @access public
+     * @param string $field 日期字段名
+     * @param string $op 比较运算符或者表达式
+     * @param string|array $range 比较范围
+     * @return $this
+     */
+    public function whereDate(string $field, string $op, $range = null)
+    {
+        $this->options['where_date'][] = [$field, $op, $range];
+        return $this;
+    }
 
     /**
      * 生成Where条件的Db

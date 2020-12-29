@@ -1,7 +1,7 @@
 <?php
 
 
-namespace yiqiniu\extend\traits;
+namespace yiqiniu\extend\db\traits;
 
 
 use think\Cache;
