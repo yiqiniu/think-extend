@@ -272,6 +272,17 @@ if (!function_exists('httpRequest_async')) {
 
     }
 }
+
+
+if (!function_exists('httpRequest_async_wait')) {
+    /**
+     * 异步处理后，等待回调处理完成
+     */
+    function httpRequest_async_wait(){
+        Http::wait();
+    }
+}
+
 if (!function_exists('writelog')) {
     /**
      * 写入日志
