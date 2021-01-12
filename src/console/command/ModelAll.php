@@ -49,6 +49,7 @@ class ModelAll extends Make
             ->addOption('module', '-m', Option::VALUE_REQUIRED, "specified Module name")
             ->addOption('keyword', '-k', Option::VALUE_REQUIRED, "specified table name keyword")
             ->addOption('subdirectory', '-d', Option::VALUE_REQUIRED, "specified SubDirectories")
+            ->addOption('table', '-t', Option::VALUE_REQUIRED, "specified table name")
             ->setDescription('Generate all models from the database');
     }
 
@@ -61,6 +62,7 @@ class ModelAll extends Make
         // 子目录
         $subDir = strtolower($input->getOption('subdirectory'));
 
+
         $db_connect = null;
 
         $this->app = App::getInstance();
@@ -69,6 +71,16 @@ class ModelAll extends Make
             $connect = $this->app->config->get('database.connections.' . $default);
         } else {
             $connect = $this->app->config->get('database.');
+        }
+
+        //指定 table
+        $table_name = trim($input->getOption('table'));
+        if (!empty($table_name)) {
+            // 生成所有的类
+            $prefix_len = strlen($connect['prefix']);
+            if (substr($table_name, 0, $prefix_len) != $connect['prefix']) {
+                $table_name = $connect['prefix'] . $table_name;
+            }
         }
 
         if (empty($connect['database'])) {
@@ -83,23 +95,29 @@ class ModelAll extends Make
                 $this->schema_name = $schema;
             }
 
-            $tablelist = $db_connect->table('pg_class')
+            $tabledb = $db_connect->table('pg_class')
                 ->field(['relname as name', "cast(obj_description(relfilenode,'pg_class') as varchar) as comment"])
                 ->where('relname', 'in', function ($query) {
                     $query->table('pg_tables')
                         ->where('schemaname', $this->schema_name)
                         ->whereRaw("position('_2' in tablename)=0")->field('tablename');
-                })->select();
+                });
+            if(!empty($table_name)){
+                $tabledb = $tabledb->where('relname',$table_name);
+            }
 
         } else {
 
 
-            $tablelist = $db_connect->table('information_schema.tables')
+            $tabledb = $db_connect->table('information_schema.tables')
                 ->where('table_schema', $connect['database'])
-                ->field('table_name as name,table_comment as comment')
-                ->select();
+                ->field('table_name as name,table_comment as comment');
+            if(!empty($table_name)){
+                $tabledb = $tabledb->where('table_name',$table_name);
+            }
         }
         //select table_name,table_comment from information_schema.tables where table_schema='yiqiniu_new';
+        $tablelist = $tabledb->select();
 
         // 获取数据库配置
         $name = trim($input->getOption('module'));
@@ -132,18 +150,18 @@ class ModelAll extends Make
 
         $stubs = $this->getStub();
 
-        // 写入基本的Model类
-        $basemodel_file = $basemodel_path . $this->baseModel . '.php';
+        if(empty($table_name)) {
+            // 写入基本的Model类
+            $basemodel_file = $basemodel_path . $this->baseModel . '.php';
 
-        if (!file_exists($basemodel_file)) {
-            $basemodel = file_get_contents($stubs['basemodel']);
-            file_put_contents($basemodel_file, str_replace(['{%namespace%}', '{%className%}',], [
-                $basemodel_namespce,
-                $this->baseModel,
-            ], $basemodel));
+            if (!file_exists($basemodel_file)) {
+                $basemodel = file_get_contents($stubs['basemodel']);
+                file_put_contents($basemodel_file, str_replace(['{%namespace%}', '{%className%}',], [
+                    $basemodel_namespce,
+                    $this->baseModel,
+                ], $basemodel));
+            }
         }
-
-
         // 生成所有的类
         $prefix_len = strlen($connect['prefix']);
 
@@ -154,12 +172,14 @@ class ModelAll extends Make
 
         //
         $use_content = empty($subDir)?'':'use '.($basemodel_namespce.'\\'.$this->baseModel.';');
+
         foreach ($tablelist as $k => $table) {
             // 处理关键字
             if (!empty($keyword) && stripos($table['name'], $keyword) === false) {
                 continue;
             }
             $class_name = $this->parseName(substr($table['name'], $prefix_len), 1, true);
+
             // 如果是表名是class的改为ClassModel
 
             /*$tablename = '';
@@ -169,6 +189,7 @@ class ModelAll extends Make
             }*/
 
             $field = $this->getTablesField($db_connect,$table['name']);
+
             $tablename = substr($table['name'], $prefix_len);
 
             $model_file = $dirname . $class_name . 'Model.php';
@@ -251,10 +272,10 @@ class ModelAll extends Make
             $sql = "SELECT
             a.attname as field,
             format_type(a.atttypid,a.atttypmod) as type,
-            col_description(a.attrelid,a.attnum) as comment
+            col_description(a.attrelid,a.attnum) as comment,
+            a.attnotnull as notnull   
             FROM pg_class as c,pg_attribute as a
             where c.relname = '$tablename' and a.attrelid = c.oid and a.attnum>0;";
-
         } else {
 
             $sql = 'SHOW FULL COLUMNS FROM	' . $tablename;

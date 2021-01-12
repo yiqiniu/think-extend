@@ -82,7 +82,6 @@ class ValidateAll extends Make
             return;
         }
 
-        echo
         $table_name = trim($input->getOption('table'));
         if (!empty($table_name)) {
             // 生成所有的类
