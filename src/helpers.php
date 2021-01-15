@@ -46,9 +46,9 @@ if (!function_exists('api_result')) {
                 $result_code = $code->getCode();
             } else {
                 // 不是手工抛出的异常时，记录错误的修改
-                if (!($code instanceof ApiException)) {
+                /*if (!($code instanceof ApiException)) {
                     Logger::exception($code);
-                }
+                }*/
                 $result_code = API_ERROR;
             }
             $msg = $code->getMessage();
