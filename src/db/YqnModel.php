@@ -456,6 +456,6 @@ class YqnModel
 
     public function __call($method, $arguments)
     {
-        return call_user_func_array([$this->db(), $method], $arguments);
+        return call_user_func_array([$this->makeOptionDb(), $method], $arguments);
     }
 }
