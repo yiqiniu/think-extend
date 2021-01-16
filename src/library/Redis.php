@@ -319,7 +319,7 @@ class Redis
     /**
      * 更新库
      * @param $index
-     * @return bool
+     * @return mixed
      */
     public function select($index)
     {

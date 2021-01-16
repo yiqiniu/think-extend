@@ -4,7 +4,7 @@
 namespace yiqiniu\extend\db\traits;
 
 
-use think\Cache;
+use think\facade\Cache;
 use think\Exception;
 use yiqiniu\extend\library\Redis;
 
@@ -121,7 +121,7 @@ trait ReidsCache
             $ids_r = array_column($list, $this->pk);
             $ids_w = array_diff($ids, $ids_r);
             if (!empty($ids_w)) {
-                $diff_list = array_column($this->where($this->pk,"in", $ids_w)->select(), null, $this->pk);
+                $diff_list = array_column($this->where($this->pk, "in", $ids_w)->select(), null, $this->pk);
                 $this->redisHset('list', $diff_list);
                 foreach ($diff_list as $key => $row) {
                     $list[$key] = $row;
