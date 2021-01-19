@@ -149,6 +149,21 @@ trait ModelParams
         return $this;
     }
 
+
+    /**
+     * 添加join 的处理
+     * @param $join
+     * @param string|null $condition
+     * @param string $type
+     * @return $this
+     */
+    public function join($join, string $condition = null, string $type = 'INNER')
+    {
+        $this->options['join'][] = [$join, $condition, $type];
+        return $this;
+
+    }
+
     /**
      * in 条件
      * @param $field

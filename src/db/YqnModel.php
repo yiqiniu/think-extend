@@ -180,16 +180,25 @@ class YqnModel
         }
         //处理关联
         if (!empty($this->options['join']) && is_array($this->options["join"])) {
-            $db->alias('u');
-            if (is_array($this->options["join"][0])) {
-                $join = [];
-                foreach ($this->options["join"] as $j) {
-                    $join[] = [$j[0], $j[1], (empty($j[2]) ? 'left' : $j[2])];
+            $db = $db->alias('u');
+            // 将join 条件转为数组
+            $joins = is_array(current($this->options["join"])) ? $this->options["join"] : [$this->options["join"]];
+            foreach ($joins as $k => $item) {
+                switch (count($item)) {
+                    case 1:
+                        $db = $db->join($item[0]);
+                        break;
+                    case 2:
+                        $db = $db->join($item[0], $item[1]);
+                        break;
+                    case 3:
+                        $db = $db->join($item[0], $item[1], $item[2]);
+                        break;
+                    default:
+                        break;
                 }
-                $db->join($join);
-            } else {
-                $db->join([$this->options["join"]]);
             }
+
         }
         return $db;
     }
