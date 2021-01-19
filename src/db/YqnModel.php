@@ -69,7 +69,9 @@ class YqnModel
         'having' => '',
         'page_size' => 30,
         'cache' => [],
-        'without_field' => ''
+        'without_field' => '',
+        'alias'=>'',
+        'join'=>[],
     ];
 
 
