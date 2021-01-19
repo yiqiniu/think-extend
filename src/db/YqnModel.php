@@ -178,9 +178,17 @@ class YqnModel
             $cache = &$this->options['cache'];
             $db = $db->cache($cache['key'], $cache['expire'], $cache['tag']);
         }
+        //添加别别名的处理
+        if (!empty($this->options['alias'])) {
+            $db = $db->alias($this->options['alias']);
+        }
+
         //处理关联
         if (!empty($this->options['join']) && is_array($this->options["join"])) {
-            $db = $db->alias('u');
+
+            if (empty($this->options['alias'])) {
+                $db = $db->alias('u');
+            }
             // 将join 条件转为数组
             $joins = is_array(current($this->options["join"])) ? $this->options["join"] : [$this->options["join"]];
             foreach ($joins as $k => $item) {

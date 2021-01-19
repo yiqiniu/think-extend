@@ -151,6 +151,16 @@ trait ModelParams
 
 
     /**
+     * 别名处理
+     * @param $alias
+     * @return $this
+     */
+    public function alias($alias){
+        $this->options['alias']=$alias;
+        return $this;
+    }
+
+    /**
      * 添加join 的处理
      * @param $join
      * @param string|null $condition
