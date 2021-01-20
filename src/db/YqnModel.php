@@ -75,6 +75,13 @@ class YqnModel
     ];
 
 
+    /**
+     * 表映射
+     * @var array
+     */
+    protected  $table_map=[];
+
+
     public function __construct()
     {
         $this->name = parse_name($this->name, 1);
@@ -130,6 +137,19 @@ class YqnModel
             foreach ($this->options['where_time'] as $date) {
                 [$field, $op, $range] = $date;
                 $db = $db->whereTime($field, $op, $range);
+            }
+        }
+        //处理闭包搜索
+        if (!empty($this->options['where_function']) && !empty($this->table_map)) {
+            $function = is_array(current($this->options["where_function"])) ? $this->options["where_function"] : [$this->options["where_function"]];
+            foreach ($function as $field => $v) {
+                if (empty($v['table']) || empty($v['field']) || empty($this->table_map[$v['table']])) {
+                    continue;
+                }
+                $name = $this->table_map[$v['table']];
+                $db = $db->where($field,$v['op'] ?? 'in',function($query) use ($name,$v){
+                    $query->name($name)->where($v['where'] ?? [])->field($v['field']);
+                });
             }
         }
 
