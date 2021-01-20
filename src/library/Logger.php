@@ -43,7 +43,7 @@ class Logger
      */
     public function exception($e): bool
     {
-        if (!$e instanceof \Exception) {
+        if (!$e instanceof \Exception &&  !$e instanceof \TypeError) {
             return false;
         }
 
