@@ -137,7 +137,6 @@ if (!function_exists('httpRequest')) {
                     $response = Http::asJson()->post($url, $params);
                     break;
                 case 'POST':
-                    $http = Http::withHeaders($header);
                     if ($upload) {
                         $input_name = $upload['name'] ?? 'file';
                         if (is_array($upload)) {
@@ -146,20 +145,14 @@ if (!function_exists('httpRequest')) {
                             $file = $upload;
                         }
                         if (!empty($file) && file_exists($file)) {
-                            $http = Http::asMultipart();
-                            $params2[] = [
-                                'name' => $input_name,
-                                'contents' => fopen($file, 'r'),
-                                'filename' => $input_name,
-                            ];
-
-                            foreach ($params as $k=>$v){
-                                $params2[]=['name'=>$k,'contents'=>$v];
-                            }
-                            $params = $params2;
+                            $response = Http::asMultipart($input_name, file_get_contents($file), $input_name, $header)
+                                ->post($url, $params);
+                        } else {
+                            $response = Http::withHeaders($header)->post($url, $params);
                         }
+                    } else {
+                        $response = Http::withHeaders($header)->post($url, $params);
                     }
-                    $response = $http->post($url, $params);
                     break;
                 default:
                     throw  new ApiException('CURL不支持的请求方式！', API_VAILD_EXCEPTION);
@@ -246,7 +239,6 @@ if (!function_exists('httpRequest_async')) {
                     Http::asJson()->postAsync($url, $params, $default_success, $default_fail);
                     break;
                 case 'POST':
-                    $http = Http::withHeaders($header);
                     if ($upload) {
                         $input_name = $upload['name'] ?? 'file';
                         if (is_array($upload)) {
@@ -255,20 +247,14 @@ if (!function_exists('httpRequest_async')) {
                             $file = $upload;
                         }
                         if (!empty($file) && file_exists($file)) {
-                            $http = Http::asMultipart();
-                            $params2[] = [
-                                'name' => $input_name,
-                                'contents' => fopen($file, 'r'),
-                                'filename' => $input_name,
-                            ];
-
-                            foreach ($params as $k=>$v){
-                                $params2[]=['name'=>$k,'contents'=>$v];
-                            }
-                            $params = $params2;
+                            Http::asMultipart($input_name, file_get_contents($file), $input_name, $header)
+                                ->postAsync($url, $params, $default_success, $default_fail);
+                        } else {
+                            Http::withHeaders($header)->postAsync($url, $params, $default_success, $default_fail);
                         }
+                    } else {
+                        Http::withHeaders($header)->postAsync($url, $params, $default_success, $default_fail);
                     }
-                    $response = $http->postAsync($url, $params,$default_success, $default_fail);
                     break;
                 default:
                     throw  new ApiException('CURL不支持的请求方式！', API_VAILD_EXCEPTION);
@@ -288,8 +274,7 @@ if (!function_exists('httpRequest_async_wait')) {
     /**
      * 异步处理后，等待回调处理完成
      */
-    function httpRequest_async_wait()
-    {
+    function httpRequest_async_wait(){
         Http::wait();
     }
 }
