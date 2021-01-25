@@ -127,8 +127,8 @@ class YqnModel
             $db = $db->whereOr($this->parseWhere($this->options['where_or']));
         }
         // 解析原始条件
-        if (!empty($this->options['where_string'])) {
-            foreach ($this->options['where_string'] as $subsql) {
+        if (!empty($this->options['where_raw'])) {
+            foreach ($this->options['where_raw'] as $subsql) {
                 $db = $db->whereRaw($subsql);
             }
         }
