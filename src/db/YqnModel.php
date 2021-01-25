@@ -70,8 +70,8 @@ class YqnModel
         'page_size' => 30,
         'cache' => [],
         'without_field' => '',
-        'alias'=>'',
-        'join'=>[],
+        'alias' => '',
+        'join' => [],
     ];
 
 
@@ -79,7 +79,7 @@ class YqnModel
      * 表映射
      * @var array
      */
-    protected  $table_map=[];
+    protected $table_map = [];
 
 
     public function __construct()
@@ -147,7 +147,7 @@ class YqnModel
                     continue;
                 }
                 $name = $this->table_map[$v['table']];
-                $db = $db->where($field,$v['op'] ?? 'in',function($query) use ($name,$v){
+                $db = $db->where($field, $v['op'] ?? 'in', function ($query) use ($name, $v) {
                     $query->name($name)->where($v['where'] ?? [])->field($v['field']);
                 });
             }
@@ -453,44 +453,28 @@ class YqnModel
     protected function parseWhere($where = [])
     {
 
-        //将全部条件整理到where 数组中
-        foreach ($where as $field => $values) {
-            if (empty($values) && $values !== '0') {
+        //将不规范的where 规范化
+        foreach ($where as $key => $values) {
+            $count = count($values);
+            if (is_numeric($key) && $count === 3) {
                 continue;
             }
-            if (is_array($values)) {
-                [$op, $value] = $values;
-                $where[$field] = [$field, $op, $value];
-            } else {
-                $where[$field] = [$field, '=', $values];
+            if (is_numeric($key) && $count == 2) {
+                $field = array_shift($values);
+                $values = current($values);
             }
-        }
-
-        //产生查询条件
-        foreach ($where as $field => &$values) {
-            // 如果自定义函数的话,使用自定义处理
-            $field_function = 'where' . ucfirst($field);
-            if (method_exists($this, $field_function)) {
-                if ($function_result = $this->$field_function($field, is_array($values) ? end($values) : $values)) {
-                    $where[$field] = $function_result;
-                } else {
-                    unset($where[$field]);
+            if (is_string($field)) {
+                if (is_array($values)) {
+                    [$op, $value] = $values;
+                    $where[$key] = [$field, $op, $value];
+                } else if (is_string($values)) {
+                    $where[$key] = [$field, $op, $value];
                 }
             } else {
-                //处理第一个不是字段的问题
-                if ($field != current($values)) {
-                    if (is_array($values)) {
-                        [$op, $value] = $values;
-                        $where[$field] = [$field, $op, $value];
-                    } else {
-                        $where[$field] = [$field, '=', $values];
-                    }
-                }
-
+                unset($where[$key]);
             }
         }
-
-        return array_values($where);
+        return $where;
     }
 
     public function __call($method, $arguments)
