@@ -459,6 +459,7 @@ class YqnModel
             if (is_numeric($key) && $count === 3) {
                 continue;
             }
+            $field = $key;
             if (is_numeric($key) && $count == 2) {
                 $field = array_shift($values);
                 $values = current($values);
