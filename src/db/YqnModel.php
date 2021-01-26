@@ -453,29 +453,79 @@ class YqnModel
     protected function parseWhere($where = [])
     {
 
-        //将不规范的where 规范化
+        //将全部条件整理到where 数组中
         foreach ($where as $key => $values) {
-            $count = count($values);
-            if (is_numeric($key) && $count === 3) {
+
+            // 去掉无效的条件，
+            //1.key不是字符串类型， 值也不是数组，问题无法区分字段和类型，
+            //2.values 为空的
+            if ((is_numeric($key) && !is_array($values)) || (empty($values) && $values !== '0')) {
+                unset($where[$key]);
+                continue;
+            }
+            // 兼容格式：
+            // 1.['id','=',3]
+            // 2.['id',3]
+            // 3.[id=>['in'=>['11']]]
+            // 4. id:['in','1,2,3,4']
+            if (is_numeric($key) && is_array($values)) {
+                if (count($values) == 2) {
+                    $field = array_shift($values);
+                    [$op, $value] = current($values);
+                    $where[$field] = [$field, '=', $value];
+                } else if (count($values) == 3) {
+                    [$field, $op, $value] = $values;
+                    $where[$field] = [$field, $op, $value];
+                } else {
+                    $field = array_keys($values)[0];
+                    $values = current($values);
+                    if (is_array($values) && count($values) == 2) {
+                        [$op, $value] = current($values);
+                        $where[$field] = [$field, '=', $value];
+                    } else {
+                        $op = array_keys($values)[0];
+                        $op = is_numeric($op) ? '=' : $op;
+                        $value = current($values);
+                    }
+                    $where[$field] = [$field, $op, $value];
+                }
+                unset($where[$key]);
                 continue;
             }
             $field = $key;
-            if (is_numeric($key) && $count == 2) {
-                $field = array_shift($values);
-                $values = current($values);
-            }
-            if (is_string($field)) {
-                if (is_array($values)) {
-                    [$op, $value] = $values;
-                    $where[$key] = [$field, $op, $value];
-                } else if (is_string($values)) {
-                    $where[$key] = [$field, $op, $value];
-                }
+            if (is_array($values)) {
+                [$op, $value] = $values;
+                $where[$field] = [$field, $op, $value];
             } else {
-                unset($where[$key]);
+                $where[$field] = [$field, '=', $values];
             }
         }
-        return $where;
+
+        //产生查询条件
+        foreach ($where as $field => &$values) {
+            // 如果自定义函数的话,使用自定义处理
+            $field_function = 'where' . ucfirst($field);
+            if (method_exists($this, $field_function)) {
+                if ($function_result = $this->$field_function($field, is_array($values) ? end($values) : $values)) {
+                    $where[$field] = $function_result;
+                } else {
+                    unset($where[$field]);
+                }
+            } else {
+                //处理第一个不是字段的问题
+                if ($field != current($values)) {
+                    if (is_array($values)) {
+                        [$op, $value] = $values;
+                        $where[$field] = [$field, $op, $value];
+                    } else {
+                        $where[$field] = [$field, '=', $values];
+                    }
+                }
+
+            }
+        }
+
+        return array_values($where);
     }
 
     public function __call($method, $arguments)
