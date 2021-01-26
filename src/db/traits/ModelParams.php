@@ -36,6 +36,16 @@ trait ModelParams
     }
 
     /**
+     * 指定table名称
+     * @param $name
+     * @return $this
+     */
+    public function name($name)
+    {
+        $this->name = $name;
+        return $this;
+    }
+    /**
      * 指定查询数量
      * @access public
      * @param mixed $length 查询数量
