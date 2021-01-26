@@ -478,16 +478,18 @@ class YqnModel
                     $where[$field] = [$field, $op, $value];
                 } else {
                     $field = array_keys($values)[0];
-                    $values = current($values);
-                    if (is_array($values) && count($values) == 2) {
-                        [$op, $value] = current($values);
-                        $where[$field] = [$field, '=', $value];
-                    } else {
-                        $op = array_keys($values)[0];
-                        $op = is_numeric($op) ? '=' : $op;
-                        $value = current($values);
+                    if (!is_numeric($field)) {
+                        $values = current($values);
+                        if (is_array($values) && count($values) == 2) {
+                            [$op, $value] = current($values);
+                            $where[$field] = [$field, '=', $value];
+                        } else {
+                            $op = array_keys($values)[0];
+                            $op = is_numeric($op) ? '=' : $op;
+                            $value = current($values);
+                        }
+                        $where[$field] = [$field, $op, $value];
                     }
-                    $where[$field] = [$field, $op, $value];
                 }
                 unset($where[$key]);
                 continue;
