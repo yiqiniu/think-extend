@@ -148,7 +148,7 @@ class YqnModel
                 }
                 $name = $this->table_map[$v['table']];
                 $db = $db->where($field, $v['op'] ?? 'in', function ($query) use ($name, $v) {
-                    $query->name($name)->where($v['where'] ?? [])->field($v['field']);
+                    $query->name($name)->where($this->parseWhere($v['where']))->field($v['field']);
                 });
             }
         }
@@ -316,7 +316,7 @@ class YqnModel
         if (!empty($where)) {
             $this->options['where'] = $where;
         }
-        return $this->makeWhereDb()->column($field, $keyfield);
+        return $this->makeOptionDb()->column($field, $keyfield);
     }
 
     /**
@@ -469,18 +469,18 @@ class YqnModel
             // 3.[id=>['in'=>['11']]]
             // 4. id:['in','1,2,3,4']
             if (is_numeric($key) && is_array($values)) {
-                if (count($values) == 2) {
+                if (count($values) === 2) {
                     $field = array_shift($values);
                     [$op, $value] = current($values);
-                    $where[$field] = [$field, '=', $value];
-                } else if (count($values) == 3) {
+                    $where[$field] = [$field, $op, $value];
+                } else if (count($values) === 3) {
                     [$field, $op, $value] = $values;
                     $where[$field] = [$field, $op, $value];
                 } else {
                     $field = array_keys($values)[0];
                     if (!is_numeric($field)) {
                         $values = current($values);
-                        if (is_array($values) && count($values) == 2) {
+                        if (is_array($values) && count($values) === 2) {
                             [$op, $value] = current($values);
                             $where[$field] = [$field, '=', $value];
                         } else {
