@@ -155,7 +155,7 @@ class Redis
             $keys = $this->getTagItem($tag);
 
             foreach ($keys as $key) {
-                $this->handler->delete($key);
+                $this->handler->del($key);
             }
 
             $this->rm('tag_' . md5($tag));
@@ -229,7 +229,7 @@ class Redis
     public function rm($name)
     {
         $this->writeTimes++;
-        $re = $this->handler->delete($this->getKey($name));
+        $re = $this->handler->del($this->getKey($name));
         return $re;
     }
 

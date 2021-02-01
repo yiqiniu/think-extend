@@ -1,7 +1,7 @@
 <?php
 
 
-namespace yiqiniu\extend\contract;
+namespace yiqiniu\extend\db\contract;
 
 /**
  * 插入事件

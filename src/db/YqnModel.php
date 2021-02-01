@@ -23,6 +23,7 @@ use yiqiniu\extend\db\traits\ReidsCache;
  * @method  startTrans()
  * @method  commit()
  * @method  rollback()
+ * @method  count(string $field = '*');
  */
 class YqnModel
 {

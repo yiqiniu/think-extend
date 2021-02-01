@@ -267,23 +267,6 @@ trait ModelParams
     }
 
     /**
-     * 生成Where条件的Db
-     * @return \think\facade\Db
-     */
-    protected function makeWhereDb()
-    {
-
-        $db = $this->db();
-        if (!empty($this->options['where'])) {
-            $db = $db->where($this->parseWhere($this->options['where']));
-        }
-        if (!empty($this->options['where_or'])) {
-            $db = $db->where($this->parseWhere($this->options['where_or']));
-        }
-        return $db;
-    }
-
-    /**
      * 按列获取
      * @param string $field
      * @param string $keyfield

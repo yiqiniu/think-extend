@@ -1,6 +1,6 @@
 <?php
 
-namespace yiqiniu\extend\contract;
+namespace yiqiniu\extend\db\contract;
 
 
 /**
