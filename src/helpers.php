@@ -41,15 +41,13 @@ if (!function_exists('api_result')) {
     function api_result($code, $msg = '', $data = [])
     {
         if ($code instanceof Exception) {
+            $result_code = $code->getCode();
+            // 400 以上为系统抛出异常，不记录日志
+            if($result_code<400){
+                Logger::exception($code);
+            }
             if (method_exists($code, 'getData')) {
                 $data = $data['data'] ?? [];
-                $result_code = $code->getCode();
-            } else {
-                // 不是手工抛出的异常时，记录错误的修改
-                /*if (!($code instanceof ApiException)) {
-                    Logger::exception($code);
-                }*/
-                $result_code = API_ERROR;
             }
             $msg = $code->getMessage();
             $code = $result_code;
