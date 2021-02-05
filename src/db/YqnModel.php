@@ -105,7 +105,17 @@ class YqnModel
      */
     protected function db(string $name = null)
     {
-        return Db::name(empty($name) ? $this->name : $name);
+        if(!empty($this->jsonOption)){
+            $json = $this->jsonOption;
+            if(!is_array($json)){
+                if(count($countData = explode(',',$json)) > 1){
+                    $json = $countData;
+                }
+            }
+            return Db::name(empty($name) ? $this->name : $name)->json($json);
+        }else{
+            return Db::name(empty($name) ? $this->name : $name);
+        }
     }
 
     /**
@@ -315,6 +325,9 @@ class YqnModel
     public function column($where = null, $field = '', $keyfield = '')
     {
         if (!empty($where)) {
+            if(!is_array(current($where))){
+                $where = [$where];
+            }
             $this->options['where'] = $where;
         }
         return $this->makeOptionDb()->column($field, $keyfield);
@@ -329,6 +342,9 @@ class YqnModel
     public function value($where, $field)
     {
         if (!empty($where)) {
+            if(!is_array(current($where))){
+                $where = [$where];
+            }
             $this->options['where'] = $where;
         }
         return $this->makeWhereDb()->value($field);
@@ -383,6 +399,9 @@ class YqnModel
                 api_exception(API_ERROR, '修改数据不能为空');
             }
             if (!empty($where)) {
+                if(!is_array(current($where))){
+                    $where = [$where];
+                }
                 $this->options['where'] = $where;
             }
 
@@ -410,6 +429,9 @@ class YqnModel
     {
         try {
             if (!empty($where)) {
+                if(!is_array(current($where))){
+                    $where = [$where];
+                }
                 $this->options['where'] = $where;
             }
             $this->triggerEvent('delete_before', [&$where]);
