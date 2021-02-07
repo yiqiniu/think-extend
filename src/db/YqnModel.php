@@ -59,6 +59,12 @@ class YqnModel
      */
     protected $options = [];
 
+    /**
+     * json 字段类型 会自动对字段进编码/解码
+     * @var array
+     */
+    protected array $json = [];
+
     // 默认
     private $def = [
         'where' => [],
@@ -105,17 +111,7 @@ class YqnModel
      */
     protected function db(string $name = null)
     {
-        if(!empty($this->jsonOption)){
-            $json = $this->jsonOption;
-            if(!is_array($json)){
-                if(count($countData = explode(',',$json)) > 1){
-                    $json = $countData;
-                }
-            }
-            return Db::name(empty($name) ? $this->name : $name)->json($json);
-        }else{
-            return Db::name(empty($name) ? $this->name : $name);
-        }
+        return Db::name(empty($name) ? $this->name : $name)->json($this->json);
     }
 
     /**
@@ -325,7 +321,7 @@ class YqnModel
     public function column($where = null, $field = '', $keyfield = '')
     {
         if (!empty($where)) {
-            if(!is_array(current($where))){
+            if (!is_array(current($where))) {
                 $where = [$where];
             }
             $this->options['where'] = $where;
@@ -342,7 +338,7 @@ class YqnModel
     public function value($where, $field)
     {
         if (!empty($where)) {
-            if(!is_array(current($where))){
+            if (!is_array(current($where))) {
                 $where = [$where];
             }
             $this->options['where'] = $where;
@@ -399,7 +395,7 @@ class YqnModel
                 api_exception(API_ERROR, '修改数据不能为空');
             }
             if (!empty($where)) {
-                if(!is_array(current($where))){
+                if (!is_array(current($where))) {
                     $where = [$where];
                 }
                 $this->options['where'] = $where;
@@ -429,7 +425,7 @@ class YqnModel
     {
         try {
             if (!empty($where)) {
-                if(!is_array(current($where))){
+                if (!is_array(current($where))) {
                     $where = [$where];
                 }
                 $this->options['where'] = $where;
