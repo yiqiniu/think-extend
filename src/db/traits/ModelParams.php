@@ -125,7 +125,7 @@ trait ModelParams
     {
         if (!empty($page)) {
             $this->options['page'] = $page;
-            $this->options['pagesize'] = $pageSize;
+            $this->options['page_size'] = $pageSize;
         }
         return $this;
     }
