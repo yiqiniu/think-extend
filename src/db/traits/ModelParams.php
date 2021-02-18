@@ -166,7 +166,7 @@ trait ModelParams
      * @return $this
      */
     public function alias($alias){
-        $this->options['alias']=$alias;
+        $this->options['alias'] = $alias;
         return $this;
     }
 
@@ -307,5 +307,17 @@ trait ModelParams
     {
 
         return $this->delete(null);
+    }
+
+    /**
+     * 设置缓存的处理
+     * @param bool $key
+     * @param null $expire
+     * @param null $tag
+     */
+    public function cache($key = true, $expire = null, $tag = null)
+    {
+        $this->options['cache'] = ['key' => $key, 'expire' => $expire, 'tag' => $tag];
+        return $this;
     }
 }

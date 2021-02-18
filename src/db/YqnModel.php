@@ -5,6 +5,7 @@ namespace yiqiniu\extend\db;
 
 
 use think\Exception;
+use think\facade\Cache;
 use think\facade\Db;
 use yiqiniu\extend\db\traits\ModelParams;
 use yiqiniu\extend\db\traits\ReidsCache;
@@ -16,7 +17,6 @@ use yiqiniu\extend\db\traits\ReidsCache;
  * @package yiqiniu\db
  * @method  insertAll(array $dataSet = [], int $limit = 0)
  * @method  selectInsert(array $fields, string $table)
- * @method  cache($key = true, $expire = null, $tag = null)
  * @method  alias($alias)
  * @method  getLastInsID(string $sequence = null)
  * @method  getLastSql()
@@ -205,7 +205,7 @@ class YqnModel
         //处理缓存
         if (!empty($this->options['cache'])) {
             $cache = &$this->options['cache'];
-            $db = $db->cache($cache['key'], $cache['expire'], $cache['tag']);
+            $db = $db->cache($cache['key'], $cache['expire'], $cache['tag'] === true ? $this->name : $cache['tag']);
         }
         //添加别别名的处理
         if (!empty($this->options['alias'])) {
@@ -343,7 +343,7 @@ class YqnModel
             }
             $this->options['where'] = $where;
         }
-        return $this->makeWhereDb()->value($field);
+        return $this->makeOptionDb()->value($field);
     }
 
 
@@ -441,6 +441,21 @@ class YqnModel
         }
 
     }
+
+    /**
+     * 清除指定标签的缓存
+     * @param mixed $tag 字符串: tag 名称 true 当前的表名
+     */
+    public function clearTagCache($tag)
+    {
+        if ($tag === true) {
+            $tag = $this->name;
+        }
+        if (!empty($tag)) {
+            Cache::tag($tag)->clear();
+        }
+    }
+
 
     public function getPk()
     {
