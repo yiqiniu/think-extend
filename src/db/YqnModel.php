@@ -32,10 +32,10 @@ class YqnModel
     use ModelParams;
 
     //默认缓存时间
-    const DEFAULT_CACHE_TIME = 300;
+    public const DEFAULT_CACHE_TIME = 300;
 
     //默认page_size 为30
-    const DEFAULT_PAGE_SIZE = 30;
+    public const DEFAULT_PAGE_SIZE = 30;
 
     /**
      * 指定表名
@@ -159,7 +159,6 @@ class YqnModel
                 });
             }
         }
-
         return $db;
     }
 
@@ -320,7 +319,12 @@ class YqnModel
      */
     public function column($where = null, $field = '', $keyfield = '')
     {
-        if (!empty($where)) {
+        if (is_string($where)) {
+            $keyfield = $field;
+            $field = $where;
+            $where = null;
+        }
+        if (!empty($where) && is_array($where)) {
             if (!is_array(current($where))) {
                 $where = [$where];
             }
@@ -337,7 +341,11 @@ class YqnModel
      */
     public function value($where, $field)
     {
-        if (!empty($where)) {
+        if (is_string($where)) {
+            $field = $where;
+            $where = null;
+        }
+        if (!empty($where) && is_array($where)) {
             if (!is_array(current($where))) {
                 $where = [$where];
             }
@@ -394,7 +402,7 @@ class YqnModel
             if (empty($data)) {
                 api_exception(API_ERROR, '修改数据不能为空');
             }
-            if (!empty($where)) {
+            if (!empty($where) && is_array($where)) {
                 if (!is_array(current($where))) {
                     $where = [$where];
                 }
@@ -424,16 +432,18 @@ class YqnModel
     public function delete($where = [])
     {
         try {
-            if (!empty($where)) {
+            if (!empty($where) && is_array($where)) {
                 if (!is_array(current($where))) {
                     $where = [$where];
                 }
                 $this->options['where'] = $where;
             }
             $this->triggerEvent('delete_before', [&$where]);
-
-            $result = $this->makeWhereDb()->delete();
-
+            $db = $this->makeWhereDb();
+            if (isset($this->options['soft_delete']) && is_array($this->options['soft_delete'])) {
+                $db = $db->setOption('soft_delete', $this->options['soft_delete']);
+            }
+            $result = $db->delete();
             $this->triggerEvent('delete_after', [$where, $result]);
             return $result;
         } catch (Exception $e) {
@@ -507,22 +517,28 @@ class YqnModel
                     $field = array_shift($values);
                     [$op, $value] = current($values);
                     $where[$field] = [$field, $op, $value];
-                } else if (count($values) === 3) {
-                    [$field, $op, $value] = $values;
-                    $where[$field] = [$field, $op, $value];
                 } else {
-                    $field = array_keys($values)[0];
-                    if (!is_numeric($field)) {
-                        $values = current($values);
-                        if (is_array($values) && count($values) === 2) {
-                            [$op, $value] = current($values);
-                            $where[$field] = [$field, '=', $value];
-                        } else {
-                            $op = array_keys($values)[0];
-                            $op = is_numeric($op) ? '=' : $op;
-                            $value = current($values);
-                        }
+                    if (count($values) === 3) {
+                        [$field, $op, $value] = $values;
                         $where[$field] = [$field, $op, $value];
+                    } else {
+                        $field = array_keys($values)[0];
+                        if (!is_numeric($field)) {
+                            $values = current($values);
+                            if (is_array($values)) {
+                                if (2 === count($values)) {
+                                    [$op, $value] = current($values);
+                                } else {
+                                    $op = array_keys($values)[0];
+                                    $op = is_numeric($op) ? '=' : $op;
+                                    $value = current($values);
+                                }
+                            } else {
+                                $op = '=';
+                                $value = $values;
+                            }
+                            $where[$field] = [$field, $op, $value];
+                        }
                     }
                 }
                 unset($where[$key]);
