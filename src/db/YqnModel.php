@@ -63,7 +63,7 @@ class YqnModel
      * json 字段类型 会自动对字段进编码/解码
      * @var array
      */
-    protected array $json = [];
+    protected $json = [];
 
     // 默认
     private $def = [
