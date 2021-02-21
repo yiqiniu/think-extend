@@ -241,16 +241,16 @@ class YqnModel
 
     /**
      * 返回列表
-     * @param array $conditions
+     * @param array $options
      * @return mixed
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
      * @throws Exception
      */
-    public function select($conditions = [])
+    public function select($options = [])
     {
-        $result = $this->makeOptionDb($conditions)->select();
+        $result = $this->makeOptionDb($options)->select();
 
         // 使用select_after 处理数据
         $this->triggerEvent('select_after', [&$result]);
@@ -260,16 +260,16 @@ class YqnModel
 
     /**
      * 返回一条记录
-     * @param array $conditions
+     * @param array $options
      * @return array|\think\Model|null
      * @throws \think\db\exception\DataNotFoundException
      * @throws \think\db\exception\DbException
      * @throws \think\db\exception\ModelNotFoundException
      * @throws Exception
      */
-    public function find($conditions = [])
+    public function find($options = [])
     {
-        $result = $this->makeOptionDb($conditions)->find();
+        $result = $this->makeOptionDb($options)->find();
 
 
         // 使用select_after 处理数据
@@ -325,9 +325,6 @@ class YqnModel
             $where = null;
         }
         if (!empty($where) && is_array($where)) {
-            if (!is_array(current($where))) {
-                $where = [$where];
-            }
             $this->options['where'] = $where;
         }
         return $this->makeOptionDb()->column($field, $keyfield);
@@ -346,9 +343,6 @@ class YqnModel
             $where = null;
         }
         if (!empty($where) && is_array($where)) {
-            if (!is_array(current($where))) {
-                $where = [$where];
-            }
             $this->options['where'] = $where;
         }
         return $this->makeOptionDb()->value($field);
@@ -403,9 +397,6 @@ class YqnModel
                 api_exception(API_ERROR, '修改数据不能为空');
             }
             if (!empty($where) && is_array($where)) {
-                if (!is_array(current($where))) {
-                    $where = [$where];
-                }
                 $this->options['where'] = $where;
             }
 
@@ -433,9 +424,6 @@ class YqnModel
     {
         try {
             if (!empty($where) && is_array($where)) {
-                if (!is_array(current($where))) {
-                    $where = [$where];
-                }
                 $this->options['where'] = $where;
             }
             $this->triggerEvent('delete_before', [&$where]);

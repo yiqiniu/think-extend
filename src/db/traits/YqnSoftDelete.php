@@ -14,6 +14,23 @@ trait YqnSoftDelete
 {
 
 
+    protected function checkSoftDelete(&$where)
+    {
+
+        if ($delete_field = $this->getDeleteField()) {
+            if (is_array($where) && !empty($where)) {
+                if(isset($where['where'])){
+                    $where['where'][$delete_field] = $this->getWithTrashedExp();
+                }else{
+                    $where[$delete_field] = $this->getWithTrashedExp();
+                }
+
+            } else {
+                $this->options['where'][] = [$delete_field, $this->getWithTrashedExp()];
+            }
+        }
+    }
+
     /**
      * 返回列表
      * @param array $conditions
@@ -23,12 +40,10 @@ trait YqnSoftDelete
      * @throws \think\db\exception\ModelNotFoundException
      * @throws Exception
      */
-    public function select($conditions = [])
+    public function select($options = [])
     {
-        if ($delete_field = $this->getDeleteField(true)) {
-            $this->options['where'][] = [$delete_field, $this->getWithTrashedExp()];
-        }
-        return parent::select($conditions);
+        $this->checkSoftDelete($options);
+        return parent::select($options);
     }
 
     /**
@@ -40,13 +55,10 @@ trait YqnSoftDelete
      * @throws \think\db\exception\ModelNotFoundException
      * @throws Exception
      */
-    public function find($conditions = [])
+    public function find($options = [])
     {
-
-        if ($delete_field = $this->getDeleteField()) {
-            $this->options['where'][] = [$delete_field, $this->getWithTrashedExp()];
-        }
-        return parent::find($conditions);
+        $this->checkSoftDelete($options);
+        return parent::find($options);
     }
 
 
@@ -59,10 +71,7 @@ trait YqnSoftDelete
      */
     public function page($options = []): array
     {
-
-        if ($delete_field = $this->getDeleteField()) {
-            $this->options['where'][] = [$delete_field, $this->getWithTrashedExp()];
-        }
+        $this->checkSoftDelete($options);
         return parent::page($options);
     }
 
@@ -76,9 +85,7 @@ trait YqnSoftDelete
      */
     public function column($where = null, $field = '', $keyfield = '')
     {
-        if ($delete_field = $this->getDeleteField()) {
-            $this->options['where'][] = [$delete_field, $this->getWithTrashedExp()];
-        }
+        $this->checkSoftDelete($where);
         return parent::column($where, $field, $keyfield);
 
     }
@@ -91,10 +98,7 @@ trait YqnSoftDelete
      */
     public function value($where, $field)
     {
-
-        if ($delete_field = $this->getDeleteField()) {
-            $this->options['where'][] = [$delete_field, $this->getWithTrashedExp()];
-        }
+        $this->checkSoftDelete($where);
         return parent::value($where, $field);
     }
 
@@ -108,10 +112,7 @@ trait YqnSoftDelete
      */
     public function update($where, $data)
     {
-
-        if ($delete_field = $this->getDeleteField()) {
-            $this->options['where'][] = [$delete_field, $this->getWithTrashedExp()];
-        }
+        $this->checkSoftDelete($where);
         return parent::update($where, $data);
     }
 
@@ -135,7 +136,7 @@ trait YqnSoftDelete
      * @param bool $read 是否查询操作 写操作的时候会自动去掉表别名
      * @return string|false
      */
-    protected function getDeleteField(bool $read = false)
+    protected function getDeleteField()
     {
         return !empty($this->softDeleteField) ? $this->softDeleteField : '';
     }
