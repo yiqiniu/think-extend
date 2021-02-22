@@ -4,6 +4,7 @@ use Gouguoyin\EasyHttp\Http;
 use Gouguoyin\EasyHttp\RequestException;
 use Gouguoyin\EasyHttp\Response;
 use think\exception\HttpResponseException;
+use think\exception\ValidateException;
 use yiqiniu\extend\exception\ApiException;
 use yiqiniu\extend\facade\Logger;
 use yiqiniu\extend\facade\Token;
@@ -41,13 +42,17 @@ if (!function_exists('api_result')) {
     function api_result($code, $msg = '', $data = [])
     {
         if ($code instanceof Exception) {
-            $result_code = $code->getCode();
-            // 400 以上为系统抛出异常，不记录日志
-            if($result_code<400){
-                Logger::exception($code);
-            }
-            if (method_exists($code, 'getData')) {
-                $data = $data['data'] ?? [];
+            if ($code instanceof ValidateException) {
+                $result_code = 400;
+            } else {
+                $result_code = $code->getCode();
+                // 400 以上为系统抛出异常，不记录日志
+                if ($result_code < 400) {
+                    Logger::exception($code);
+                }
+                if (method_exists($code, 'getData')) {
+                    $data = $data['data'] ?? [];
+                }
             }
             $msg = $code->getMessage();
             $code = $result_code;
@@ -272,7 +277,8 @@ if (!function_exists('httpRequest_async_wait')) {
     /**
      * 异步处理后，等待回调处理完成
      */
-    function httpRequest_async_wait(){
+    function httpRequest_async_wait()
+    {
         Http::wait();
     }
 }
