@@ -485,6 +485,9 @@ class YqnModel
     protected function parseWhere($where = [])
     {
 
+        if (!is_array($where)) {
+            api_exception(API_ERROR, '`'.$where . '` 无效的查询条件');
+        }
         //将全部条件整理到where 数组中
         foreach ($where as $key => $values) {
 

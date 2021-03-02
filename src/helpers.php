@@ -4,7 +4,6 @@ use Gouguoyin\EasyHttp\Http;
 use Gouguoyin\EasyHttp\RequestException;
 use Gouguoyin\EasyHttp\Response;
 use think\exception\HttpResponseException;
-use think\exception\ValidateException;
 use yiqiniu\extend\exception\ApiException;
 use yiqiniu\extend\facade\Logger;
 use yiqiniu\extend\facade\Token;
@@ -42,7 +41,7 @@ if (!function_exists('api_result')) {
     function api_result($code, $msg = '', $data = [])
     {
         if ($code instanceof Exception) {
-            if ($code instanceof ValidateException) {
+            if ($code instanceof \think\Exception && $code->getCode() === 0) {
                 $result_code = 400;
             } else {
                 $result_code = $code->getCode();
