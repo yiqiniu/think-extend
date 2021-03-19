@@ -229,6 +229,6 @@ trait ReidsCache
     public function cacheClear()
     {
         $this->redisHdel('list');
-        $this->cacheDel();
+        $this->clearTagCache(true);
     }
 }
