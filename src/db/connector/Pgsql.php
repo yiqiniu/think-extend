@@ -13,6 +13,7 @@ namespace yiqiniu\db\connector;
 
 use PDO;
 use think\db\Connection;
+use think\db\Query;
 
 /**
  * Pgsql数据库驱动
@@ -21,119 +22,13 @@ class Pgsql extends Connection
 {
     protected $builder = '\\think\\db\\builder\\Pgsql';
 
-
-    //自增ID的对应 seq名称
-    protected $_seq = '';
-    protected $_schema = '';
-
     // PDO连接参数
     protected $params = [
-        PDO::ATTR_CASE => PDO::CASE_NATURAL,
-        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-        PDO::ATTR_ORACLE_NULLS => PDO::NULL_NATURAL,
+        PDO::ATTR_CASE              => PDO::CASE_NATURAL,
+        PDO::ATTR_ERRMODE           => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_ORACLE_NULLS      => PDO::NULL_NATURAL,
         PDO::ATTR_STRINGIFY_FETCHES => false,
     ];
-
-    /**
-     * 取得数据表的字段信息
-     * @access public
-     * @param  string $tableName
-     * @return array
-     */
-    public function getFields($tableName)
-    {
-        list($tableName) = explode(' ', $tableName);
-        //$sql             = 'select fields_name as "field",fields_type as "type",fields_not_null as "null",fields_key_name as "key",fields_default as "default",fields_default as "extra" from table_msg(\'' . $tableName . '\');';
-
-        $sql = "select a.attname as \"field\",
-            t.typname as \"type\",
-            a.attnotnull as \"null\",
-            i.indisprimary as \"key\",
-            d.adsrc as \"default\",
-            d.adsrc as \"extra\"
-            from pg_class c
-            inner join pg_attribute a on a.attrelid = c.oid
-            inner join pg_type t on a.atttypid = t.oid
-            left join pg_attrdef d on a.attrelid=d.adrelid and d.adnum=a.attnum
-            left join pg_index i on a.attnum=ANY(i.indkey) and c.oid = i.indrelid
-            where (c.relname='{$tableName}' or c.relname = lower('{$tableName}'))   AND a.attnum > 0
-                order by a.attnum asc;";
-
-        $pdo = $this->query($sql, [], false, true);
-        $result = $pdo->fetchAll(PDO::FETCH_ASSOC);
-        $info = [];
-
-        if ($result) {
-            foreach ($result as $key => $val) {
-                $val = array_change_key_case($val);
-                $info[$val['field']] = [
-                    'name' => $val['field'],
-                    'type' => $val['type'],
-                    'notnull' => (bool)('' !== $val['null']),
-                    'default' => $val['default'],
-                    'primary' => !empty($val['key']),
-                    'autoinc' => (0 === strpos($val['extra'], 'nextval(')),
-                ];
-            }
-        }
-        $this->getseqField($info);
-        return $this->fieldCase($info);
-    }
-
-    /**
-     * 获取自增字段,用于获取插入后自增值
-     * @param $list 字段列表
-     */
-    public function getseqField($list)
-    {
-        foreach ($list as $k => $v) {
-            if ($v['autoinc']) {
-                $arr = explode("'", $v['default']);
-                $this->_seq = count($arr) == 3 ? $arr[1] : '';
-                break;
-            }
-        }
-    }
-
-    /**
-     * 取得数据库的表信息
-     * @access public
-     * @param  string $dbName
-     * @return array
-     */
-    public function getTables($dbName = '')
-    {
-        $sql = "select tablename as Tables_in_test from pg_tables where  schemaname ='public'";
-        $pdo = $this->query($sql, [], false, true);
-        $result = $pdo->fetchAll(PDO::FETCH_ASSOC);
-        $info = [];
-
-        foreach ($result as $key => $val) {
-            $info[$key] = current($val);
-        }
-
-        return $info;
-    }
-
-    /**
-     * 获取最近插入的ID
-     * @access public
-     * @param string $sequence 自增序列名
-     * @return string
-     */
-    public function getLastInsID($sequence = null)
-    {
-
-        try {
-            return $this->linkID->lastInsertId($sequence);
-        } catch (Throwable $e) {
-            if (strpos($e, 'SQLSTATE[55000]') != false && strpos($e, 'lastval') != false) {
-                return '';
-            }
-        }
-
-
-    }
 
     /**
      * 解析pdo连接的dsn信息
@@ -150,6 +45,110 @@ class Pgsql extends Connection
         }
 
         return $dsn;
+    }
+
+    /**
+     * 取得数据表的字段信息
+     * @access public
+     * @param  string $tableName
+     * @return array
+     */
+    public function getFields($tableName)
+    {
+        list($tableName) = explode(' ', $tableName);
+        $sql             = 'select fields_name as "field",fields_type as "type",fields_not_null as "null",fields_key_name as "key",fields_default as "default",fields_default as "extra" from table_msg(\'' . $tableName . '\');';
+
+        $pdo    = $this->query($sql, [], false, true);
+        $result = $pdo->fetchAll(PDO::FETCH_ASSOC);
+        $info   = [];
+
+        if ($result) {
+            foreach ($result as $key => $val) {
+                $val                 = array_change_key_case($val);
+                $info[$val['field']] = [
+                    'name'    => $val['field'],
+                    'type'    => $val['type'],
+                    'notnull' => (bool) ('' !== $val['null']),
+                    'default' => $val['default'],
+                    'primary' => !empty($val['key']),
+                    'autoinc' => (0 === strpos($val['extra'], 'nextval(')),
+                ];
+            }
+        }
+
+        return $this->fieldCase($info);
+    }
+
+    /**
+     * 取得数据库的表信息
+     * @access public
+     * @param  string $dbName
+     * @return array
+     */
+    public function getTables($dbName = '')
+    {
+        $sql    = "select tablename as Tables_in_test from pg_tables where  schemaname ='public'";
+        $pdo    = $this->query($sql, [], false, true);
+        $result = $pdo->fetchAll(PDO::FETCH_ASSOC);
+        $info   = [];
+
+        foreach ($result as $key => $val) {
+            $info[$key] = current($val);
+        }
+
+        return $info;
+    }
+
+    /**
+     * 插入记录
+     * @access public
+     * @param  Query   $query        查询对象
+     * @param  boolean $replace      是否replace
+     * @param  boolean $getLastInsID 返回自增主键
+     * @param  string  $sequence     自增序列名
+     * @return integer|string
+     */
+    public function insert(Query $query, $replace = false, $getLastInsID = false, $sequence = null)
+    {
+        // 分析查询表达式
+        $options = $query->getOptions();
+
+        // 生成SQL语句
+        $sql = $this->builder->insert($query, $replace);
+
+        $bind = $query->getBind();
+
+        if (!empty($options['fetch_sql'])) {
+            // 获取实际执行的SQL语句
+            return $this->getRealSql($sql, $bind);
+        }
+
+        // 执行操作
+        $result = '' == $sql ? 0 : $this->execute($sql, $bind, $query);
+
+        if ($result) {
+            $sequence  = $sequence ?: (isset($options['sequence']) ? $options['sequence'] : null);
+            $lastInsId = $this->getLastInsID($sequence);
+
+            $data = $options['data'];
+
+            if ($lastInsId) {
+                $pk = $query->getPk($options);
+                if (is_string($pk)) {
+                    $data[$pk] = $lastInsId;
+                }
+            }
+
+            $query->setOption('data', $data);
+
+            $query->trigger('after_insert');
+
+            if ($getLastInsID) {
+                return $lastInsId;
+            }
+        }
+
+        return $result;
     }
 
     /**
