@@ -20,7 +20,7 @@ use think\db\Query;
  */
 class Pgsql extends Connection
 {
-    protected $builder = '\\think\\db\\builder\\Pgsql';
+    protected $builder = '\\yiqiniu\\db\\builder\\Pgsql';
 
     // PDO连接参数
     protected $params = [
@@ -127,13 +127,17 @@ class Pgsql extends Connection
         $result = '' == $sql ? 0 : $this->execute($sql, $bind, $query);
 
         if ($result) {
-            $sequence  = $sequence ?: (isset($options['sequence']) ? $options['sequence'] : null);
-            $lastInsId = $this->getLastInsID($sequence);
+
+            $pk = $query->getPk($options);
+            $lastInsId = '';
+            if ($pk) {
+                $sequence = $options['sequence'] ?? null;
+                $lastInsId = $this->getLastInsID($sequence);
+            }
 
             $data = $options['data'];
 
             if ($lastInsId) {
-                $pk = $query->getPk($options);
                 if (is_string($pk)) {
                     $data[$pk] = $lastInsId;
                 }
