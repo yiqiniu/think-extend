@@ -75,7 +75,7 @@ class Redis
     {
         if (is_null($this->handler) || $force) {
 
-            if ($r = config("redis."))
+            if ($r = config("redis"))
                 $this->options = array_merge($this->options, $r);
             if (!empty($options)) {
                 $this->options = array_merge($this->options, $options);
