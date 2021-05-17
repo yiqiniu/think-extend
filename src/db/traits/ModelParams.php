@@ -110,7 +110,7 @@ trait ModelParams
     public function withoutField($field)
     {
         if (!empty($field)) {
-            $this->options['withoutField'] = $field;
+            $this->options['without_field'] = $field;
         }
         return $this;
     }
