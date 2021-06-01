@@ -15,7 +15,7 @@ if (!function_exists('api_exception')) {
      * @param string $msg 异常信息
      * @throws \yiqiniu\exception\ApiException
      */
-    function api_exception($code, $msg)
+    function api_exception($code, $msg='')
     {
         if (!is_numeric($code) && !empty($msg)) {
             $msg2 = $code;
