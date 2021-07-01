@@ -42,4 +42,74 @@
 ]
 ```
 
+## 导出文件
+
+### 导出execl
+
+导入execl扩展包
+
+```
+composer require phpoffice/phpspreadsheet
+```
+
+example
+
+```
+    $titles = ['用户名', '电话'];
+    $data = [
+        ['张三', '1201221313132'],
+        ['张三', '1201221313132'],
+        ['张三', '1201221313132'],
+    ];
+    Extend::ExportFile()->exportExcel("test.xls", $titles, $data);
+
+```
+
+2. 调用函数
+
+### 导出PDF
+
+导入包
+
+```
+composer require mpdf/mpdf
+```
+
+指定汉字字体
+
+```
+          $params=[
+            'name' => 'pingfang',
+            'path'=>  public_path() . 'pdf/fonts',
+            'data'=>[
+                'pingfang' => [
+                    'R' => 'PingFangMedium.ttf',
+                    'I' => 'PingFangRegular.ttf',
+                ]
+            ]
+        ];
+        
+    
+```
+
+example
+
+```
+        $params=[
+            'path' => public_path() . 'pdf/fonts',
+            'data' => [
+                'pingfang' => [
+                    'R' => 'PingFangMedium.ttf',
+                    'I' => 'PingFangRegular.ttf',
+                ]
+            ],
+            'name' => 'pingfang'
+        ];
+        $content = file_get_contents(public_path() . 'pdf/template.html');
+
+        Extend::ExportFile()->exportPdf("aaa.pdf", $content,$params);
+        
+```
+
+
 
